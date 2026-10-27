@@ -1,0 +1,116 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Album dana</h1>
+    <p>Jedan album za svaki dan, na dnu stupca uz glavni članak. Dan bez albuma izlazi bez njega.</p>
+  </div>
+</div>
+
+{{if .Gaps}}
+<p class="gaps">{{template "icon" "calendar"}}<span>Bez unosa u sljedeća dva tjedna:</span>
+  {{range .Gaps}}<a class="tag" href="?dan={{date .}}">{{sday .}}</a> {{end}}
+</p>
+{{end}}
+
+<div class="two">
+  <section class="box">
+    <h2>Novi album</h2>
+    <form method="post" action="/admin/albumi" enctype="multipart/form-data" class="form">
+      {{template "csrf" .CSRF}}
+      {{template "fields" .Form}}
+      <div><button class="btn btn--main">{{template "icon" "plus"}}Dodaj album</button></div>
+    </form>
+  </section>
+
+  <section class="box">
+    <h2>Raspored</h2>
+    {{if .Albums}}
+    <div class="tbl"><table>
+      <thead><tr><th>Dan</th><th>Album</th><th></th></tr></thead>
+      <tbody>
+      {{range .Albums}}
+        <tr{{if lt (date .Day) (date $.Today)}} class="off"{{end}}>
+          <td class="nowrap">{{sday .Day}}{{if eq (date .Day) (date $.Today)}} <span class="tag tag--ok">danas</span>{{end}}</td>
+          <td>
+            <div class="row">
+              {{with media .Cover}}<img src="{{.}}" alt="" class="cover">{{end}}
+              <div><a href="/admin/albumi/{{.ID}}"><strong>{{.Title}}</strong></a><div class="muted small">{{.Artist}}{{with .Year}} · {{.}}{{end}}</div></div>
+            </div>
+          </td>
+          <td class="num"><a class="btn btn--small" href="/admin/albumi/{{.ID}}">Uredi</a></td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+    {{else}}<p class="muted">Još nema nijednog albuma.</p>{{end}}
+  </section>
+</div>
+{{template "close" .}}{{end}}
+
+{{define "fields"}}
+      <label>Dan
+        <input type="date" name="day" value="{{date .Day}}" required>
+        {{template "err" (index .Errors "day")}}
+      </label>
+      <label>Izvođač
+        <input type="text" name="artist" value="{{.Artist}}" maxlength="120" required>
+        {{template "err" (index .Errors "artist")}}
+      </label>
+      <label>Naslov albuma
+        <input type="text" name="title" value="{{.Title}}" maxlength="160" required>
+        {{template "err" (index .Errors "title")}}
+      </label>
+      <div class="fields-3">
+        <label>Godina
+          <input type="number" name="year" value="{{with .Year}}{{.}}{{end}}" min="1900" max="2100" inputmode="numeric">
+          {{template "err" (index .Errors "year")}}
+        </label>
+        <label>Trajanje <small>min</small>
+          <input type="number" name="minutes" value="{{with .Minutes}}{{.}}{{end}}" min="1" max="600" inputmode="numeric">
+          {{template "err" (index .Errors "minutes")}}
+        </label>
+        <label>Pjesama
+          <input type="number" name="tracks" value="{{with .Tracks}}{{.}}{{end}}" min="1" max="200" inputmode="numeric">
+          {{template "err" (index .Errors "tracks")}}
+        </label>
+      </div>
+      <label>Žanr
+        <input type="text" name="genre" value="{{.Genre}}" maxlength="60" placeholder="Prog-Rock">
+        {{template "err" (index .Errors "genre")}}
+      </label>
+      <label>Poveznica <small>Neobavezno: gdje se album sluša.</small>
+        <input type="url" name="link" value="{{.Link}}" placeholder="https://">
+        {{template "err" (index .Errors "link")}}
+      </label>
+      <label>Omot <small>Kvadratna slika, PNG, JPEG ili WebP, do 2 MB.</small>
+        {{with media .Cover}}<img src="{{.}}" alt="Trenutni omot" class="cover cover--big">{{end}}
+        <input type="file" name="cover" accept="image/png,image/jpeg,image/webp">
+        {{template "err" (index .Errors "cover")}}
+      </label>
+      {{if .Cover}}<label class="check"><input type="checkbox" name="remove_cover" value="1"> Makni omot</label>{{end}}
+{{end}}
+
+{{define "edit"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <a class="back" href="/admin/albumi">{{template "icon" "arrow-left"}}Album dana</a>
+    <h1>{{.Form.Title}}</h1>
+  </div>
+</div>
+<div class="two">
+  <section class="box">
+    <form method="post" action="/admin/albumi/{{.Form.ID}}" enctype="multipart/form-data" class="form">
+      {{template "csrf" .CSRF}}
+      {{template "fields" .Form}}
+      <div><button class="btn btn--main">Spremi</button></div>
+    </form>
+  </section>
+  <section class="box danger">
+    <h2>Brisanje</h2>
+    <form method="post" action="/admin/albumi/{{.Form.ID}}/obrisi" hx-confirm="Obrisati album {{.Form.Title}}?">
+      {{template "csrf" .CSRF}}
+      <button class="btn btn--bad">{{template "icon" "trash"}}Obriši album</button>
+    </form>
+  </section>
+</div>
+{{template "close" .}}{{end}}

@@ -19,8 +19,13 @@ import (
 	"tisak/internal/store"
 )
 
-// maxUpload is the largest logo or flag accepted.
-const maxUpload = 2 << 20
+// maxUpload is the largest logo, flag or cover accepted; maxPhoto the largest photo in an article,
+// straight from a phone; maxBody the largest form, an article with two new photos.
+const (
+	maxUpload = 2 << 20
+	maxPhoto  = 8 << 20
+	maxBody   = 2*maxPhoto + 1<<20
+)
 
 type sourceGroup struct {
 	Category store.Category
@@ -50,11 +55,19 @@ func (a *Admin) sources(w http.ResponseWriter, r *http.Request) {
 		}
 		groups = append(groups, g)
 	}
+	side := sourceGroup{Category: store.Category{Title: "Bočni stupac"}}
 	loose := sourceGroup{Category: store.Category{Title: "Bez kategorije"}}
 	for _, s := range srcs {
-		if !placed[s.ID] {
+		switch {
+		case placed[s.ID]:
+		case fetch.Keeps(s.Kind):
+			side.Sources = append(side.Sources, s)
+		default:
 			loose.Sources = append(loose.Sources, s)
 		}
+	}
+	if len(side.Sources) > 0 {
+		groups = append(groups, side)
 	}
 	if len(loose.Sources) > 0 {
 		groups = append(groups, loose)
@@ -94,10 +107,10 @@ func (a *Admin) readSource(r *http.Request, s store.Source) sourceForm {
 	case len([]rune(f.Name)) > 80:
 		f.Errors["name"] = "Najviše 80 znakova."
 	}
-	if _, ok := fetch.Lookup(f.Kind); !ok {
+	if !fetch.Known(f.Kind) {
 		f.Errors["kind"] = "Odaberi vrstu."
 	}
-	if msg := checkURL(f.URL, f.Kind != "hn"); msg != "" {
+	if msg := checkURL(f.URL, needsURL(f.Kind)); msg != "" {
 		f.Errors["url"] = msg
 	}
 	if f.Zone != "" {
@@ -108,8 +121,14 @@ func (a *Admin) readSource(r *http.Request, s store.Source) sourceForm {
 	if err != nil || per < 0 || per > 24 {
 		f.Errors["per_edition"] = "Broj od 0 do 24."
 	}
-	if _, err := a.Store.Category(r.Context(), f.CategoryID); err != nil {
-		f.Errors["category"] = "Odaberi kategoriju."
+	switch {
+	case fetch.Keeps(f.Kind) && f.CategoryID != 0:
+		f.Errors["category"] = "Ova vrsta puni bočni stupac, pa nema kategoriju."
+	case fetch.Keeps(f.Kind):
+	default:
+		if _, err := a.Store.Category(r.Context(), f.CategoryID); err != nil {
+			f.Errors["category"] = "Odaberi kategoriju."
+		}
 	}
 
 	settings := map[string]string{}
@@ -125,6 +144,9 @@ func (a *Admin) readSource(r *http.Request, s store.Source) sourceForm {
 	f.Settings = settings
 	return f
 }
+
+// needsURL tells whether a kind cannot work without an address: Hacker News and the side column know theirs.
+func needsURL(kind string) bool { return kind != "hn" && !fetch.Keeps(kind) }
 
 func checkURL(raw string, required bool) string {
 	if raw == "" {
@@ -321,10 +343,12 @@ func (a *Admin) testSource(w http.ResponseWriter, r *http.Request) {
 	var res result
 	f, ok := fetch.Lookup(kind)
 	switch {
+	case fetch.Keeps(kind):
+		res.Err = "Ova vrsta puni bočni stupac i sprema sama. Spremi izvor pa ga dohvati."
 	case !ok:
 		res.Err = "Odaberi vrstu izvora."
-	case checkURL(settings["url"], kind != "hn") != "":
-		res.Err = checkURL(settings["url"], kind != "hn")
+	case checkURL(settings["url"], needsURL(kind)) != "":
+		res.Err = checkURL(settings["url"], needsURL(kind))
 	default:
 		ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 		defer cancel()
@@ -352,6 +376,10 @@ var unsafeSVG = regexp.MustCompile(`(?i)<script|<foreignobject|\son[a-z]+\s*=|ja
 // upload stores a picture sent in a form field. It gives the hash, or a message for the admin.
 // No file in the field gives neither.
 func (a *Admin) upload(r *http.Request, field string, width int) (string, string) {
+	return a.uploadUpTo(r, field, width, maxUpload)
+}
+
+func (a *Admin) uploadUpTo(r *http.Request, field string, width, limit int) (string, string) {
 	file, head, err := r.FormFile(field)
 	if errors.Is(err, http.ErrMissingFile) || errors.Is(err, http.ErrNotMultipart) {
 		return "", ""
@@ -360,12 +388,12 @@ func (a *Admin) upload(r *http.Request, field string, width int) (string, string
 		return "", "Slika nije stigla: " + err.Error()
 	}
 	defer file.Close()
-	body, err := io.ReadAll(io.LimitReader(file, maxUpload+1))
+	body, err := io.ReadAll(io.LimitReader(file, int64(limit)+1))
 	if err != nil {
 		return "", "Slika nije stigla: " + err.Error()
 	}
-	if len(body) > maxUpload {
-		return "", "Slika je prevelika: najviše 2 MB."
+	if len(body) > limit {
+		return "", fmt.Sprintf("Slika je prevelika: najviše %d MB.", limit>>20)
 	}
 	if bytes.Contains(bytes.ToLower(body[:min(512, len(body))]), []byte("<svg")) && unsafeSVG.Match(body) {
 		return "", "Ovaj SVG ima skriptu ili poveznicu koja pokreće kod, pa ga ne mogu prihvatiti."

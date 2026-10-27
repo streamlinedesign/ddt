@@ -101,3 +101,26 @@ func (p *Press) dataURI(name string) (string, error) {
 	}
 	return "data:" + kind + ";base64," + base64.StdEncoding.EncodeToString(data), nil
 }
+
+var iconName = regexp.MustCompile(`^[a-z-]+$`)
+
+// weatherIcons gives the styles for the weather icons an edition shows, and only those:
+// all of them would add 20 KB to every edition.
+func (p *Press) weatherIcons(snap Snapshot) (template.CSS, error) {
+	seen := map[string]bool{}
+	var b strings.Builder
+	for _, f := range snap.Weather {
+		for _, part := range f.Parts {
+			if seen[part.Icon] || !iconName.MatchString(part.Icon) {
+				continue
+			}
+			seen[part.Icon] = true
+			uri, err := p.dataURI("static/icons/weather/" + part.Icon + ".svg")
+			if err != nil {
+				return "", err
+			}
+			fmt.Fprintf(&b, ".wx--%s{--wx:url(%s)}\n", part.Icon, uri)
+		}
+	}
+	return template.CSS(b.String()), nil
+}

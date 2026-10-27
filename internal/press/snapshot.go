@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"tisak/internal/store"
 )
 
 // Snapshot is everything one edition shows, frozen at print time. It is stored with the edition
@@ -16,7 +18,13 @@ type Snapshot struct {
 	Version   int       `json:"version"`
 	Reason    string    `json:"reason,omitempty"`
 	PrintedAt time.Time `json:"printed_at"`
-	Sections  []Section `json:"sections"`
+	// Lead is the main article; the side column beside it has the weather, the word, NASA's picture and the album.
+	Lead     *Lead            `json:"lead,omitempty"`
+	Weather  []store.Forecast `json:"weather,omitempty"`
+	Word     *WordPanel       `json:"word,omitempty"`
+	Sky      *SkyPanel        `json:"sky,omitempty"`
+	Album    *AlbumPanel      `json:"album,omitempty"`
+	Sections []Section        `json:"sections"`
 	// Everything is the day's full haul for the Sve iz dana page.
 	Everything []AllCategory `json:"everything"`
 }

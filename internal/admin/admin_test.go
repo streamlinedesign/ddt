@@ -172,7 +172,8 @@ func TestSignInAndCSRF(t *testing.T) {
 	}
 
 	// every page renders
-	for _, p := range []string{"/admin/", "/admin/pregled", "/admin/kategorije", "/admin/izvori", "/admin/izvori/novi", "/admin/racun"} {
+	for _, p := range []string{"/admin/", "/admin/pregled", "/admin/kategorije", "/admin/izvori", "/admin/izvori/novi", "/admin/racun",
+		"/admin/clanci", "/admin/rijeci", "/admin/albumi"} {
 		if w := b.do("GET", p, nil, nil); w.Code != http.StatusOK {
 			t.Errorf("GET %s: %d %s", p, w.Code, w.Body.String())
 		}

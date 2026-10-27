@@ -2,7 +2,6 @@
 # Saves one real sample of every Tisak source into ./samples/ and zips it.
 # Usage:
 #   export TMDB_API_KEY=...   # your TMDB key
-#   export NASA_API_KEY=...   # your NASA key
 #   bash fetch-samples.sh
 # Upload samples.zip in the thread. The saved answers never contain your keys,
 # and the log below prints addresses with the keys masked.
@@ -17,7 +16,6 @@ get() { # get <file> <url>
   local file="$1" url="$2" code
   code=$(curl -sL -m 30 -A "$UA" -o "$OUT/$file" -w "%{http_code}" "$url")
   local shown="${url//${TMDB_API_KEY:-__none__}/KEY}"
-  shown="${shown//${NASA_API_KEY:-__none__}/KEY}"
   printf "%s  %-32s %8s bytes  %s\n" "$code" "$file" "$(wc -c < "$OUT/$file")" "$shown" | tee -a "$LOG"
   sleep 1
 }
@@ -44,10 +42,9 @@ get kinofilm.xml              https://kinofilm.hr/feed/
 # Weather
 get meteo-7d.html             "https://meteo.hr/prognoze.php?id=prognoza&section=prognoze_model&param=7d&Code=ZAGREB-GRI%C4%8C"
 
-# NASA picture of the day
-get nasa-apod-api.json        "https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY:-DEMO_KEY}"
-get nasa-apod-api-3days.json  "https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY:-DEMO_KEY}&start_date=$(date -d '-2 days' +%F)"
-get nasa-apod-page.html       https://science.nasa.gov/apod/
+# NASA picture of the day: the keyless APOD Basic feed (the old api.nasa.gov one answers 500)
+get apod-basic.json           "https://science.nasa.gov/wp-json/wp/v2/apod-basic?per_page=3"
+get apod-basic.rss            https://science.nasa.gov/feed/apod-basic/
 
 # TMDB (Croatian releases and a film with its release dates)
 if [ -n "${TMDB_API_KEY:-}" ]; then

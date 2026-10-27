@@ -107,6 +107,9 @@ func (p *Press) Pick(ctx context.Context, now time.Time) (Snapshot, error) {
 	snap := Snapshot{
 		Day: now.Format("2006-01-02"), DayLong: DayLong(now), Year: now.Year(), PrintedAt: now,
 	}
+	if err := p.pickDaily(ctx, &snap, now); err != nil {
+		return snap, err
+	}
 	cats, err := p.Store.Categories(ctx)
 	if err != nil {
 		return snap, err
@@ -281,6 +284,18 @@ func (s Snapshot) pictures() []Pic {
 			out = append(out, *p)
 		}
 	}
+	if s.Lead != nil {
+		add(s.Lead.Picture)
+		for _, b := range s.Lead.Blocks {
+			add(b.Picture)
+		}
+	}
+	if s.Sky != nil {
+		add(s.Sky.Picture)
+	}
+	if s.Album != nil {
+		add(s.Album.Cover)
+	}
 	for _, sec := range s.Sections {
 		add(sec.Flag)
 		for _, c := range sec.Cards {
@@ -322,19 +337,31 @@ func (p *Press) Render(name string, snap Snapshot) ([]byte, error) {
 	if site == "" {
 		site = "/"
 	}
+	icons, err := p.weatherIcons(snap)
+	if err != nil {
+		return nil, err
+	}
 	view := struct {
 		Snapshot
 		Assets   Assets
+		Icons    template.CSS
+		Cities   []string // the weather picker, on the front page only
 		Site     string
 		Sve      string
 		Swatches []string
-	}{snap, assets, site, "sve.html", []string{"--bg", "--bg-subtle", "--fg", "--fg-muted", "--border", "--rule", "--accent", "--cold"}}
+	}{snap, assets, icons, nil, site, "sve.html", []string{"--bg", "--bg-subtle", "--fg", "--fg-muted", "--border", "--rule", "--accent", "--cold"}}
+	if name == "edition" && len(snap.Weather) > 1 {
+		for _, f := range snap.Weather {
+			view.Cities = append(view.Cities, f.City)
+		}
+	}
 	return p.execute(name, view)
 }
 
 // Archive is the data the archive page shows.
 type Archive struct {
 	Assets Assets
+	Cities []string // none: the weather picker is the front page's
 	Site   string
 	Sve    string
 	Year   int
@@ -390,6 +417,9 @@ func (p *Press) execute(name string, data any) ([]byte, error) {
 		"take":   func(c []Card, n int) []Card { return c[:min(n, len(c))] },
 		"skip":   func(c []Card, n int) []Card { return c[min(n, len(c)):] },
 		"plural": Plural,
+		"inline": Inline,
+		"host":   Host,
+		"minmax": func(f store.Forecast) bool { return f.Min != nil && f.Max != nil },
 	}).ParseFS(p.Web, "templates/*.html")
 	if err != nil {
 		return nil, err

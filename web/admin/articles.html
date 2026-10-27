@@ -1,0 +1,174 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Članci</h1>
+    <p>Glavni članak stoji na vrhu izdanja, uz bočni stupac. Postavi ga za dan, ili ga prikvači za svaki dan koji nema svoj.</p>
+  </div>
+</div>
+
+<section class="box">
+  <h2>Novi članak</h2>
+  <form method="post" action="/admin/clanci" class="row">
+    {{template "csrf" .CSRF}}
+    <input type="text" name="title" maxlength="200" placeholder="Naslov" required class="grow">
+    <button class="btn btn--main">{{template "icon" "plus"}}Napravi</button>
+  </form>
+</section>
+
+<section class="box">
+  <h2>Svi članci</h2>
+  {{if .Articles}}
+  <div class="tbl"><table>
+    <thead><tr><th>Članak</th><th>Glavni</th><th class="hide-phone">Mijenjan</th><th></th></tr></thead>
+    <tbody>
+    {{range .Articles}}
+      <tr>
+        <td>
+          <div class="row">
+            {{with media .Picture}}<img src="{{.}}" alt="" class="thumb">{{end}}
+            <div><a href="/admin/clanci/{{.ID}}"><strong>{{.Title}}</strong></a>{{with .Author}}<div class="muted small">{{.}}</div>{{end}}</div>
+          </div>
+        </td>
+        <td class="nowrap">
+          {{with .Day}}<span class="tag{{if eq (date .) $.Today}} tag--ok{{end}}">{{sday .}}</span>{{end}}
+          {{if .Pinned}}<span class="tag tag--warn">prikvačen</span>{{end}}
+          {{if and (not .Day) (not .Pinned)}}<span class="muted">—</span>{{end}}
+        </td>
+        <td class="hide-phone muted">{{when .UpdatedAt}}</td>
+        <td class="num"><a class="btn btn--small" href="/admin/clanci/{{.ID}}">Uredi</a></td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table></div>
+  {{else}}<p class="muted">Još nema nijednog članka.</p>{{end}}
+</section>
+{{template "close" .}}{{end}}
+
+{{define "edit"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <a class="back" href="/admin/clanci">{{template "icon" "arrow-left"}}Članci</a>
+    <h1>{{.Form.Title}}</h1>
+    <p>
+      {{if .Day}}<span class="tag{{if eq .Day .Today}} tag--ok{{end}}">glavni {{if eq .Day .Today}}danas{{else}}{{sday (deday .Form.Day)}}{{end}}</span>{{end}}
+      {{if .Form.Pinned}}<span class="tag tag--warn">prikvačen</span>{{end}}
+    </p>
+  </div>
+</div>
+
+<div class="editor-grid">
+  {{/* The editor posts as a plain form, so the page comes back at the block a button worked on. */}}
+  <form method="post" action="/admin/clanci/{{.Form.ID}}" enctype="multipart/form-data" class="box form form--wide editor" hx-boost="false">
+    {{template "csrf" .CSRF}}
+    <label>Naslov
+      <input type="text" name="title" value="{{.Form.Title}}" maxlength="200" required>
+      {{template "err" (index .Form.Errors "title")}}
+    </label>
+    <label>Opis <small>Uvod ispod naslova, veći tekst.</small>
+      <textarea name="description" rows="3" maxlength="600">{{.Form.Description}}</textarea>
+      {{template "err" (index .Form.Errors "description")}}
+    </label>
+    <label>Autor <small>Npr. Streamline · The Boss</small>
+      <input type="text" name="author" value="{{.Form.Author}}" maxlength="120">
+      {{template "err" (index .Form.Errors "author")}}
+    </label>
+
+    <fieldset class="block block--head">
+      <legend>Glavna slika</legend>
+      {{with media .Form.Picture}}<img src="{{.}}" alt="" class="block-pic">{{end}}
+      <label>Slika <small>JPEG, PNG ili WebP, do 8 MB. Smanji se na 1600 px.</small>
+        <input type="file" name="picture" accept="image/png,image/jpeg,image/webp,image/gif">
+        {{template "err" (index .Form.Errors "picture")}}
+      </label>
+      {{if .Form.Picture}}<label class="check"><input type="checkbox" name="remove_picture" value="1"> Makni sliku</label>{{end}}
+      <label>Što je na slici <small>Za čitače zaslona.</small>
+        <input type="text" name="picture_alt" value="{{.Form.PictureAlt}}" maxlength="300">
+        {{template "err" (index .Form.Errors "picture_alt")}}
+      </label>
+      <label>Izvor slike <small>Ispod slike, npr. FOTO: Unsplash / arhiva</small>
+        <input type="text" name="picture_credit" value="{{.Form.PictureCredit}}" maxlength="200">
+        {{template "err" (index .Form.Errors "picture_credit")}}
+      </label>
+    </fieldset>
+
+    <div class="blocks">
+      <p class="muted small">U tekstu: *kurziv*, **podebljano**, [riječi](https://poveznica). Prvi odlomak dobiva veliko početno slovo.</p>
+      {{template "err" (index .Form.Errors "blocks")}}
+      {{$n := len .Form.Blocks}}
+      {{range $i, $b := .Form.Blocks}}
+      <fieldset class="block" id="b{{$i}}">
+        <legend>{{index $.Kinds .Type}}</legend>
+        <input type="hidden" name="block_type" value="{{.Type}}">
+        <input type="hidden" name="block_picture" value="{{.Picture}}">
+        {{if eq .Type "img"}}
+          <input type="hidden" name="block_text" value="">
+          {{with media .Picture}}<img src="{{.}}" alt="" class="block-pic">{{end}}
+          <label>{{if .Picture}}Zamijeni sliku{{else}}Slika{{end}} <small>do 8 MB</small>
+            <input type="file" name="block_file_{{$i}}" accept="image/png,image/jpeg,image/webp,image/gif">
+          </label>
+          <label>Opis i izvor slike
+            <input type="text" name="block_caption" value="{{.Caption}}" maxlength="300">
+          </label>
+        {{else}}
+          <input type="hidden" name="block_caption" value="">
+          <textarea name="block_text" rows="{{if eq .Type "p"}}6{{else}}2{{end}}" aria-label="{{index $.Kinds .Type}}">{{.Text}}</textarea>
+        {{end}}
+        {{template "err" (index $.Form.Errors (printf "b%d" $i))}}
+        <div class="block-tools">
+          <button class="btn btn--icon btn--small" name="op" value="up:{{$i}}" formnovalidate aria-label="Pomakni gore"{{if eq $i 0}} disabled{{end}}>{{template "icon" "arrow-up"}}</button>
+          <button class="btn btn--icon btn--small" name="op" value="down:{{$i}}" formnovalidate aria-label="Pomakni dolje"{{if eq (add $i 1) $n}} disabled{{end}}>{{template "icon" "arrow-down"}}</button>
+          <button class="btn btn--icon btn--small btn--ghost" name="op" value="del:{{$i}}" formnovalidate aria-label="Makni blok">{{template "icon" "trash"}}</button>
+        </div>
+      </fieldset>
+      {{end}}
+      <div class="row wrap">
+        <span class="muted small">Dodaj:</span>
+        <button class="btn btn--small" name="op" value="add:p" formnovalidate>{{template "icon" "plus"}}Odlomak</button>
+        <button class="btn btn--small" name="op" value="add:h" formnovalidate>{{template "icon" "plus"}}Podnaslov</button>
+        <button class="btn btn--small" name="op" value="add:quote" formnovalidate>{{template "icon" "plus"}}Citat</button>
+        <button class="btn btn--small" name="op" value="add:img" formnovalidate>{{template "icon" "image"}}Slika</button>
+      </div>
+    </div>
+
+    <div class="editor-save"><button class="btn btn--main">{{template "icon" "save"}}Spremi</button></div>
+  </form>
+
+  <div class="stack">
+    <section class="box">
+      <h2>Glavni članak</h2>
+      <form method="post" action="/admin/clanci/{{.Form.ID}}/dan" class="stack">
+        {{template "csrf" .CSRF}}
+        <label>Dan <small>Članak stoji na vrhu izdanja tog dana. Dan koji je imao drugi članak dobiva ovaj.</small>
+          <input type="date" name="day" value="{{if .Day}}{{.Day}}{{else}}{{.Today}}{{end}}" required>
+        </label>
+        <div class="row wrap">
+          <button class="btn btn--main">{{template "icon" "calendar"}}Postavi za dan</button>
+          {{if .Day}}<button class="btn" name="makni" value="1" formnovalidate>Makni s naslovnice</button>{{end}}
+        </div>
+      </form>
+    </section>
+
+    <section class="box">
+      <h2>Prikvačen</h2>
+      <p class="muted small">Prikvačeni članak je glavni svaki dan koji nema svoj. Samo jedan može biti prikvačen.</p>
+      <form method="post" action="/admin/clanci/{{.Form.ID}}/prikvaci">
+        {{template "csrf" .CSRF}}
+        {{if .Form.Pinned}}
+        <button class="btn">Otkvači</button>
+        {{else}}
+        <input type="hidden" name="pin" value="1">
+        <button class="btn">{{template "icon" "sticky-note"}}Prikvači</button>
+        {{end}}
+      </form>
+    </section>
+
+    <section class="box danger">
+      <h2>Brisanje</h2>
+      <form method="post" action="/admin/clanci/{{.Form.ID}}/obrisi" hx-confirm="Obrisati članak {{.Form.Title}}?">
+        {{template "csrf" .CSRF}}
+        <button class="btn btn--bad">{{template "icon" "trash"}}Obriši članak</button>
+      </form>
+    </section>
+  </div>
+</div>
+{{template "close" .}}{{end}}

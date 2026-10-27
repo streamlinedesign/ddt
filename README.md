@@ -36,9 +36,10 @@ The database tests also use `<name>_admin` (here `tisak_test_admin`), and wipe b
 
 - `cmd/tisak`: the binary, the daily loop, the first categories and sources
 - `internal/store`: Postgres and migrations
-- `internal/fetch`: one fetcher per kind of source
+- `internal/fetch`: one fetcher per kind of source; `dhmz` (weather, 8 cities) and `apod` (NASA, no key)
+  fill the side column and keep their own records
 - `internal/media`: pictures, shrunk once and stored by hash
-- `internal/press`: picks the day's cards and writes the edition
+- `internal/press`: picks the day's main article, side column and cards, and writes the edition
 - `internal/site`: serves editions and the archive
 - `internal/auth`, `internal/admin`, `internal/jobs`: sign-in, the dashboard, fetch and print one at a time
 - `web/`: the edition's templates and static files, the dashboard's templates

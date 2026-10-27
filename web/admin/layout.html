@@ -35,6 +35,12 @@
         <a class="nav-item{{if eq .Nav "kategorije"}} active{{end}}" href="/admin/kategorije"{{if eq .Nav "kategorije"}} aria-current="page"{{end}}>{{template "icon" "layers"}}<span>Kategorije</span></a>
         <a class="nav-item{{if eq .Nav "izvori"}} active{{end}}" href="/admin/izvori"{{if eq .Nav "izvori"}} aria-current="page"{{end}}>{{template "icon" "rss"}}<span>Izvori</span></a>
       </div>
+      <div class="nav-group">
+        <div class="nav-label">Dnevno</div>
+        <a class="nav-item{{if eq .Nav "clanci"}} active{{end}}" href="/admin/clanci"{{if eq .Nav "clanci"}} aria-current="page"{{end}}>{{template "icon" "file-text"}}<span>Članci</span></a>
+        <a class="nav-item{{if eq .Nav "rijeci"}} active{{end}}" href="/admin/rijeci"{{if eq .Nav "rijeci"}} aria-current="page"{{end}}>{{template "icon" "book-open"}}<span>Riječ dana</span></a>
+        <a class="nav-item{{if eq .Nav "albumi"}} active{{end}}" href="/admin/albumi"{{if eq .Nav "albumi"}} aria-current="page"{{end}}>{{template "icon" "disc"}}<span>Album dana</span></a>
+      </div>
     </nav>
     <div class="sidebar-footer">
       <a class="btn btn--block" href="/" hx-boost="false" target="_blank" rel="noopener">{{template "icon" "external-link"}}<span>Otvori stranicu</span></a>

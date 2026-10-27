@@ -154,7 +154,138 @@
           </svg><span>sepija</span>
         </button>
       </div>
+      {{- with .Cities}}
+          <label class="settings__city">
+            <span>Grad</span>
+            <select id="city">
+              {{- range .}}<option>{{.}}</option>{{end}}
+            </select>
+          </label>
+      {{- end}}
         </div>
       </details>
     </footer>
+{{end}}
+
+{{/* The main article and the side column beside it. Without an article the side column spreads across the page. */}}
+{{define "main"}}
+{{- if or .Lead .Weather .Word .Sky .Album}}
+      <div class="grid-main{{if not .Lead}} grid-main--rail{{end}}">
+        {{- with .Lead}}
+        <article class="col col-article">
+          <h2 class="article-title">{{.Title}}</h2>
+          {{- with .Description}}
+          <p class="article-description">{{.}}</p>
+          {{- end}}
+          {{- with .Author}}
+          <p class="article-publisher">{{.}}</p>
+          {{- end}}
+          {{- with .Picture}}
+          <figure class="article-figure">
+            <img data-viewer src="{{pic .}}" alt="{{$.Lead.PictureAlt}}" class="article-image"{{if .W}} width="{{.W}}" height="{{.H}}"{{end}}>
+            {{- with $.Lead.Credit}}
+            <figcaption class="article-source">{{.}}</figcaption>
+            {{- end}}
+          </figure>
+          {{- end}}
+          <div class="article-body">
+            {{- range .Blocks}}
+            {{- if eq .Type "h"}}
+            <h3>{{inline .Text}}</h3>
+            {{- else if eq .Type "quote"}}
+            <blockquote><p>{{inline .Text}}</p></blockquote>
+            {{- else if eq .Type "img"}}
+            <figure class="article-figure">
+              <img data-viewer src="{{pic .Picture}}" alt="{{.Caption}}" class="article-image article-image--free" loading="lazy"{{if .Picture.W}} width="{{.Picture.W}}" height="{{.Picture.H}}"{{end}}>
+              {{- with .Caption}}
+              <figcaption class="article-source">{{.}}</figcaption>
+              {{- end}}
+            </figure>
+            {{- else}}
+            <p>{{inline .Text}}</p>
+            {{- end}}
+            {{- end}}
+          </div>
+        </article>
+        {{- end}}
+
+        <aside class="col col-sidebar">
+          {{- with .Weather}}{{$first := index . 0}}
+          <section class="panel weather">
+            <h3 class="panel-title">
+              <span>Vremenska Prognoza · <span class="weather-city">{{$first.City}}</span></span>
+              <a class="panel-source" href="{{$first.Link}}" target="_blank" rel="noopener noreferrer">DHMZ</a>
+            </h3>
+            {{- range $i, $f := .}}
+            <div class="weather-day" data-city="{{.City}}" data-url="{{.Link}}"{{if $i}} hidden{{end}}>
+              {{- if minmax .}}
+              <div class="weather-temp">
+                <span class="weather-min">{{.Min}}°</span>
+                <span class="weather-sep">/</span>
+                <span class="weather-max">{{.Max}}°</span>
+              </div>
+              {{- end}}
+              <dl class="weather-parts">
+                {{- range .Parts}}
+                <div class="weather-part"><dt>{{.Label}}</dt><dd><i class="wx wx--{{.Icon}}" role="img" aria-label="{{.Sky}}" title="{{.Sky}}"></i>{{.Temp}}°</dd></div>
+                {{- end}}
+              </dl>
+            </div>
+            {{- end}}
+          </section>
+          {{- end}}
+
+          {{- with .Word}}
+          <section class="panel">
+            <h3 class="panel-title">
+              Riječ Dana
+              {{- with .Link}}
+              <a class="panel-source" href="{{.}}" target="_blank" rel="noopener noreferrer">{{host .}}</a>
+              {{- end}}
+            </h3>
+            <dl class="word">
+              <dt>{{if .Link}}<a href="{{.Link}}">{{.Word}}</a>{{else}}{{.Word}}{{end}}</dt>
+              {{- with .Description}}
+              <dd>{{inline .}}</dd>
+              {{- end}}
+            </dl>
+          </section>
+          {{- end}}
+
+          {{- with .Sky}}
+          <section class="panel">
+            <h3 class="panel-title">
+              Slika Dana
+              <a class="panel-source" href="{{.Link}}" target="_blank" rel="noopener noreferrer">NASA</a>
+            </h3>
+            <figure class="sky">
+              {{- with .Picture}}
+              <img data-viewer src="{{pic .}}" alt="{{$.Sky.Alt}}" class="panel-image" loading="lazy"{{if .W}} width="{{.W}}" height="{{.H}}"{{end}}>
+              {{- end}}
+              <figcaption class="sky-caption"><a href="{{.Link}}">{{.Title}}</a>{{with .Credit}} · {{.}}{{end}}</figcaption>
+            </figure>
+          </section>
+          {{- end}}
+
+          {{- with .Album}}
+          <section class="panel">
+            <div class="album-card">
+              {{- with .Cover}}
+              <img src="{{pic .}}" alt="{{$.Album.Artist}} – {{$.Album.Title}}" loading="lazy"{{if .W}} width="{{.W}}" height="{{.H}}"{{end}}>
+              {{- end}}
+              <strong class="album-eyebrow">{{.Artist}}{{with .Year}} · {{.}}{{end}}</strong>
+              <h3>{{if .Link}}<a href="{{.Link}}">{{.Title}}</a>{{else}}{{.Title}}{{end}}</h3>
+              {{- if or .Genre .Minutes .Tracks}}
+              <dl class="weather-parts">
+                {{- with .Genre}}<div class="weather-part"><dt>Žanr</dt><dd>{{.}}</dd></div>{{end}}
+                {{- with .Minutes}}<div class="weather-part"><dt>Trajanje</dt><dd>{{.}} min</dd></div>{{end}}
+                {{- with .Tracks}}<div class="weather-part"><dt>Pjesme</dt><dd>{{.}}</dd></div>{{end}}
+              </dl>
+              {{- end}}
+            </div>
+          </section>
+          {{- end}}
+        </aside>
+      </div>
+{{- end}}
 {{end}}

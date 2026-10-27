@@ -79,7 +79,7 @@ func main() {
 	client := fetch.NewClient()
 	pics := &media.Store{Dir: filepath.Join(*data, "media"), DB: db, Client: client}
 	pr := &press.Press{Store: db, Media: pics, Web: web.FS(webDir), Out: filepath.Join(*data, "editions"), Site: *siteURL, Loc: loc}
-	runner := &fetch.Runner{Store: db, Client: client, Pictures: pics, PictureWidth: 1000}
+	runner := &fetch.Runner{Store: db, Client: client, Pictures: pics, PictureWidth: 1000, Loc: loc}
 	app := &App{DB: db, Press: pr, Runner: runner, Jobs: &jobs.Jobs{Runner: runner, Press: pr}, Media: pics, Log: logger}
 	app.Admin = &admin.Admin{Store: db, Auth: &auth.Manager{Store: db, TrustProxy: *proxy}, Jobs: app.Jobs, Press: pr,
 		Media: pics, Client: client, Web: pr.Web, Loc: loc, Log: logger, FetchAt: *fetchAt, PrintAt: *printAt}
@@ -204,6 +204,10 @@ func (a *App) Check(ctx context.Context) error {
 	fmt.Fprintln(tw, "SOURCE\tKIND\tITEMS\tNEWEST\tRESULT")
 	for _, s := range sources {
 		f, ok := fetch.Lookup(s.Kind)
+		if fetch.Keeps(s.Kind) {
+			fmt.Fprintf(tw, "%s\t%s\t-\t-\tside column: saves as it fetches, so not tried here\n", s.Name, s.Kind)
+			continue
+		}
 		if !ok {
 			fmt.Fprintf(tw, "%s\t%s\t-\t-\tunknown kind\n", s.Name, s.Kind)
 			continue
