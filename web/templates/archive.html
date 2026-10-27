@@ -1,0 +1,40 @@
+{{define "archive"}}<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arhiva · Digitalni Dnevni Tisak</title>
+  <script>{{.Assets.EarlyJS}}</script>
+  <style>{{.Assets.CSS}}</style>
+</head>
+<body>
+  <div class="page">
+    <main class="content">
+      <header class="masthead">
+        <div class="masthead-meta">
+          <span class="masthead-date">Svako izdanje, takvo kakvo je otisnuto</span>
+          <span class="masthead-vol"></span>
+          <a class="masthead-vol" href="{{.Site}}">Današnji tisak</a>
+        </div>
+        <h1 class="masthead-title">Arhiva</h1>
+      </header>
+{{- range .Months}}
+      <header class="section-head"><h2>{{.Title}}</h2></header>
+      <ol class="list-cards archive-list">
+        {{- range .Editions}}
+        <li class="list-cards__item">
+          <a href="{{.Link}}" class="list-cards__title">{{.DayLong}}</a>
+          <span class="list-cards__meta">Br. {{.Number}} · Verzija {{.Version}}{{with .Reason}} · {{.}}{{end}} · {{.KB}} KB</span>
+        </li>
+        {{- end}}
+      </ol>
+{{- else}}
+      <p class="sve-intro">Još nema nijednog izdanja.</p>
+{{- end}}
+    </main>
+{{template "footer" .}}
+  </div>
+  <script>{{.Assets.PageJS}}</script>
+</body>
+</html>
+{{end}}

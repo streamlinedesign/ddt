@@ -1,0 +1,6 @@
+# the program's own output
+/data/
+/tisak
+# saved feed samples stay local (third-party content)
+/research/samples*/
+/samples/

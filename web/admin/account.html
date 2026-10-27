@@ -1,0 +1,58 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Račun</h1>
+    <p>Jedan administrator. Za promjenu imena ili lozinke treba trenutna lozinka.</p>
+  </div>
+</div>
+
+<div class="two">
+  <section class="box">
+    <h2>Ime i lozinka</h2>
+    <form method="post" action="/admin/racun" class="form">
+      {{template "csrf" .CSRF}}
+      <label>Ime
+        <input type="text" name="username" value="{{.Form.Username}}" maxlength="40" autocomplete="username" required>
+        {{template "err" (index .Form.Errors "username")}}
+      </label>
+      <label>Nova lozinka <small>Barem {{.Min}} znakova. Prazno: lozinka ostaje ista.</small>
+        <input type="password" name="password" minlength="{{.Min}}" autocomplete="new-password">
+        {{template "err" (index .Form.Errors "password")}}
+      </label>
+      <label>Nova lozinka još jednom
+        <input type="password" name="password2" autocomplete="new-password">
+        {{template "err" (index .Form.Errors "password2")}}
+      </label>
+      <label>Trenutna lozinka
+        <input type="password" name="current" autocomplete="current-password" required>
+        {{template "err" (index .Form.Errors "current")}}
+      </label>
+      <div><button class="btn btn--main">Spremi</button></div>
+      <p class="muted small">Nova lozinka odjavljuje sve ostale prijave.</p>
+    </form>
+  </section>
+
+  <section class="box">
+    <h2>Prijave</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Preglednik</th><th>Adresa</th><th>Zadnje</th></tr></thead>
+      <tbody>
+      {{range .Sessions}}
+        <tr>
+          <td>{{browser .UserAgent}}{{if eq .TokenHash $.This}} <span class="tag tag--ok">ova</span>{{end}}</td>
+          <td class="muted">{{.IP}}</td>
+          <td>{{when .SeenAt}}</td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+    {{if gt (len .Sessions) 1}}
+    <form method="post" action="/admin/racun/odjavi-ostale">
+      {{template "csrf" .CSRF}}
+      <button class="btn">Odjavi sve ostale</button>
+    </form>
+    {{end}}
+    <p class="muted small">Prijava traje 30 dana od zadnjeg korištenja. Zaboravljena lozinka postavlja se na poslužitelju: <code>tisak -admin ime</code>.</p>
+  </section>
+</div>
+{{template "close" .}}{{end}}

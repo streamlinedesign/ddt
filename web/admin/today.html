@@ -1,0 +1,138 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Danas</h1>
+    <p>{{daylong .Day}} · sljedeće izdanje: Br. {{.Number}}, Verzija {{.Version}}</p>
+  </div>
+</div>
+
+<div class="two">
+  <section class="box">
+    <h2>Izdanja · Br. {{.Number}}</h2>
+    {{if .Editions}}
+    <div class="tbl"><table>
+      <thead><tr><th>Izdanje</th><th>Otisnuto</th><th class="num">Veličina</th><th>Razlog</th><th></th></tr></thead>
+      <tbody>
+      {{range .Editions}}
+        <tr>
+          <td class="nowrap">Verzija {{.Version}}</td>
+          <td>{{clock .PrintedAt}}</td>
+          <td class="num">{{kb .Bytes}}</td>
+          <td class="muted">{{.Reason}}</td>
+          <td class="num nowrap"><a href="/{{day .Day}}/v{{.Version}}/" hx-boost="false" target="_blank" rel="noopener">Otvori ↗</a></td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+    {{else}}
+    <p class="muted">Danas još nije otisnuto.
+      {{if .AfterPrint}}Tisak u {{.PrintAt}} nije prošao: otisni ručno ispod.{{else}}Dohvat je u {{.FetchAt}}, tisak u {{.PrintAt}}.{{end}}</p>
+    {{end}}
+    <form method="post" action="/admin/otisni" class="stack" hx-disabled-elt="find button">
+      {{template "csrf" .CSRF}}
+      {{if .Editions}}
+      <label>Razlog pretiska <small>Stoji u arhivi uz izdanje. Staro izdanje ostaje kakvo je.</small>
+        <input type="text" name="razlog" maxlength="120" placeholder="npr. ispravljen naslov" required>
+      </label>
+      {{end}}
+      <label class="check"><input type="checkbox" name="dohvati" value="1" checked> Prvo dohvati sve izvore</label>
+      <div class="row">
+        <button class="btn btn--main">{{template "icon" "printer"}}{{if .Editions}}Pretisni: Verzija {{.Version}}{{else}}Otisni Br. {{.Number}}{{end}}</button>
+        <span class="spin" aria-hidden="true"></span>
+      </div>
+    </form>
+  </section>
+
+  <section class="box">
+    <h2>Dohvat</h2>
+    <div class="stack">
+      <p>Zadnji dohvat: <strong>{{when .LastFetch}}</strong>
+        {{with .Status.Fetch}}{{if not .At.IsZero}}<span class="muted">· trajao {{took .Took}}{{if .Failed}} · nije uspjelo {{.Failed}} od {{.Total}}{{end}}</span>{{end}}{{end}}</p>
+      <p class="muted">Svaki dan: dohvat u {{.FetchAt}}, tisak u {{.PrintAt}}, po zagrebačkom vremenu.</p>
+      {{with .Status.Running}}<p class="flash flash--warn">Upravo traje: {{if eq . "print"}}tisak{{else}}dohvat{{end}}.</p>{{end}}
+      {{if .Failing}}<p class="flash flash--warn">{{.Failing}} {{plural .Failing "izvor ne radi" "izvora ne rade" "izvora ne radi"}}. Popis je dolje.</p>{{end}}
+    </div>
+    <form method="post" action="/admin/dohvati" class="row" hx-disabled-elt="find button">
+      {{template "csrf" .CSRF}}
+      <button class="btn">{{template "icon" "rotate-cw"}}Dohvati sve sada</button>
+      <span class="spin" aria-hidden="true"></span>
+    </form>
+  </section>
+</div>
+
+<section class="box">
+  <div class="box__head">
+    <h2>Sljedeće izdanje</h2>
+    <p class="muted small">Ovo bi se otisnulo sada. Skrivena stavka ne ide ni u jedno izdanje, a njezino mjesto dobiva sljedeća.</p>
+  </div>
+  {{template "preview" .Preview}}
+</section>
+
+<section class="box">
+  <div class="box__head">
+    <h2>Izvori</h2>
+    <a class="btn btn--small" href="/admin/izvori">Uredi izvore</a>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Izvor</th><th class="hide-phone">Kategorija</th><th>Zadnji dohvat</th><th class="num">Stavki</th><th>Stanje</th></tr></thead>
+    <tbody>
+    {{range .Sources}}
+      <tr{{if not .Enabled}} class="off"{{end}}>
+        <td><a href="/admin/izvori/{{.ID}}">{{.Name}}</a></td>
+        <td class="hide-phone muted">{{.Category}}</td>
+        <td>{{whenp .LastFetchAt}}</td>
+        <td class="num">{{.LastCount}}</td>
+        <td>
+          {{if not .Enabled}}<span class="tag">isključen</span>
+          {{else if isnil .LastOK}}<span class="tag">još nije</span>
+          {{else if deref .LastOK}}<span class="tag tag--ok">radi</span>
+          {{else}}<span class="tag tag--bad">ne radi</span>{{end}}
+          {{if and .LastError (not (deref .LastOK))}}<div class="err">{{short .LastError 140}}</div>{{end}}
+        </td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table></div>
+</section>
+{{template "close" .}}{{end}}
+
+{{define "preview"}}
+<div id="pregled" class="preview">
+  {{range .Sections}}
+  <div>
+    <h3>{{.Title}}</h3>
+    <ul class="cards">
+      {{range .Cards}}
+      <li>
+        <a href="{{.Link}}" hx-boost="false" target="_blank" rel="noopener">{{.Title}}</a>
+        <span class="meta">{{.Source.Name}}{{with .Time}} · {{.}}{{end}}{{if .Picture}} · sa slikom{{end}}{{with .Points}} · {{.}} bodova{{end}}</span>
+        <form method="post" action="/admin/stavke/{{.ItemID}}/skrij" hx-post="/admin/stavke/{{.ItemID}}/skrij" hx-target="#pregled" hx-swap="outerHTML">
+          {{template "csrf" $.CSRF}}
+          <button class="btn btn--small" title="Ne tiskaj ovu stavku">Skrij</button>
+        </form>
+      </li>
+      {{end}}
+    </ul>
+  </div>
+  {{else}}
+  <p class="muted">Nema ništa za tisak. Dohvati izvore pa pogledaj ponovo.</p>
+  {{end}}
+  {{if .Hidden}}
+  <div>
+    <h3>Skriveno</h3>
+    <ul class="cards">
+      {{range .Hidden}}
+      <li>
+        <a href="{{.Link}}" hx-boost="false" target="_blank" rel="noopener">{{.Title}}</a>
+        <span class="meta">{{.Source}}{{with .PublishedAt}} · {{whenp .}}{{end}}</span>
+        <form method="post" action="/admin/stavke/{{.ID}}/vrati" hx-post="/admin/stavke/{{.ID}}/vrati" hx-target="#pregled" hx-swap="outerHTML">
+          {{template "csrf" $.CSRF}}
+          <button class="btn btn--small">Vrati</button>
+        </form>
+      </li>
+      {{end}}
+    </ul>
+  </div>
+  {{end}}
+</div>
+{{end}}

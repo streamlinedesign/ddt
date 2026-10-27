@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+    <channel>
+        <title>Germanijak - Vijesti</title>
+        <link>https://www.germanijak.hr/rss</link>
+        <description>Vijesti</description>
+        <lastBuildDate>Tue, 27 Oct 2026 11:45:18 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>awesome</generator>
+        <language>hr</language>
+        <image>
+            <title>Germanijak - Vijesti</title>
+            <url>https://www.germanijak.hr/logo_ger.png</url>
+            <link>https://www.germanijak.hr/rss</link>
+        </image>
+        <copyright>All rights reserved, Germanijak</copyright>
+        <category>Sport</category>
+    </channel>
+</rss>

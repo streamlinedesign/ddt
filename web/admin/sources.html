@@ -1,0 +1,151 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Izvori</h1>
+    <p>Svaki izvor daje stavke svojoj kategoriji. Redoslijed ovdje određuje tko prvi dobiva mjesto.</p>
+  </div>
+  <a class="btn btn--main" href="/admin/izvori/novi">{{template "icon" "plus"}}Novi izvor</a>
+</div>
+
+{{range .Groups}}
+<section class="box" id="k{{.Category.ID}}">
+  <div class="box__head">
+    <h2>{{.Category.Title}}</h2>
+    {{if .Category.ID}}<a class="btn btn--small" href="/admin/izvori/novi?kategorija={{.Category.ID}}">Dodaj izvor</a>{{end}}
+  </div>
+  {{if .Sources}}
+  <div class="tbl"><table>
+    <thead><tr><th>Redoslijed</th><th>Izvor</th><th class="hide-phone">Vrsta</th><th class="num">Po izdanju</th><th>Stanje</th><th></th></tr></thead>
+    <tbody>
+    {{$n := len .Sources}}
+    {{range $i, $s := .Sources}}
+      <tr{{if not .Enabled}} class="off"{{end}}>
+        <td>
+          <div class="row">
+            <form method="post" action="/admin/izvori/{{.ID}}/pomakni">{{template "csrf" $.CSRF}}<input type="hidden" name="smjer" value="gore"><button class="btn btn--icon" aria-label="Pomakni gore"{{if eq $i 0}} disabled{{end}}>{{template "icon" "arrow-up"}}</button></form>
+            <form method="post" action="/admin/izvori/{{.ID}}/pomakni">{{template "csrf" $.CSRF}}<input type="hidden" name="smjer" value="dolje"><button class="btn btn--icon" aria-label="Pomakni dolje"{{if eq (add $i 1) $n}} disabled{{end}}>{{template "icon" "arrow-down"}}</button></form>
+          </div>
+        </td>
+        <td>
+          {{with media .Logo}}<img src="{{.}}" alt="" class="logo on-light"> {{end}}
+          <a href="/admin/izvori/{{.ID}}"><strong>{{.Name}}</strong></a>
+          <div class="muted small">{{hostname (index .Settings "url")}}</div>
+        </td>
+        <td class="hide-phone muted">{{.Kind}}</td>
+        <td class="num">{{.PerEdition}}</td>
+        <td>
+          {{if not .Enabled}}<span class="tag">isključen</span>
+          {{else if isnil .LastOK}}<span class="tag">još nije</span>
+          {{else if deref .LastOK}}<span class="tag tag--ok">radi</span> <span class="muted small">{{whenp .LastFetchAt}}</span>
+          {{else}}<span class="tag tag--bad">ne radi</span>{{end}}
+        </td>
+        <td class="num"><a class="btn btn--small" href="/admin/izvori/{{.ID}}">Uredi</a></td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table></div>
+  {{else}}<p class="muted">Još nema izvora.</p>{{end}}
+</section>
+{{end}}
+{{template "close" .}}{{end}}
+
+{{define "edit"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <a class="back" href="/admin/izvori">{{template "icon" "arrow-left"}}Izvori</a>
+    <h1>{{if .Form.ID}}{{.Form.Name}}{{else}}Novi izvor{{end}}</h1>
+  </div>
+</div>
+
+<div class="two">
+  <section class="box">
+    <form method="post" action="/admin/izvori{{if .Form.ID}}/{{.Form.ID}}{{end}}" enctype="multipart/form-data" class="form" id="izvor">
+      {{template "csrf" .CSRF}}
+      <label>Ime <small>Pokazuje se na kartici kad izvor nema logo.</small>
+        <input type="text" name="name" value="{{.Form.Name}}" maxlength="80" required>
+        {{template "err" (index .Form.Errors "name")}}
+      </label>
+      <label>Kategorija
+        <select name="category" required>
+          <option value="">Odaberi…</option>
+          {{range .Categories}}<option value="{{.ID}}"{{if eq .ID $.Form.CategoryID}} selected{{end}}>{{.Title}}</option>{{end}}
+        </select>
+        {{template "err" (index .Form.Errors "category")}}
+      </label>
+      <label>Vrsta <small>rss čita RSS i Atom; hn čita Hacker News.</small>
+        <select name="kind">
+          {{range .Kinds}}<option value="{{.}}"{{if eq . $.Form.Kind}} selected{{end}}>{{.}}</option>{{end}}
+        </select>
+        {{template "err" (index .Form.Errors "kind")}}
+      </label>
+      <label>Adresa feeda
+        <input type="url" name="url" value="{{.Form.URL}}" placeholder="https://primjer.hr/feed/">
+        {{template "err" (index .Form.Errors "url")}}
+      </label>
+      <label>Vremenska zona <small>Samo za feed koji piše mjesno vrijeme a označi ga kao GMT, npr. Europe/Zagreb. Inače prazno.</small>
+        <input type="text" name="zone" value="{{.Form.Zone}}" placeholder="Europe/Zagreb">
+        {{template "err" (index .Form.Errors "zone")}}
+      </label>
+      <label>Po izdanju <small>Najviše stavki ovog izvora u jednom izdanju, 0 do 24.</small>
+        <input type="number" name="per_edition" value="{{.Form.PerEdition}}" min="0" max="24" required>
+        {{template "err" (index .Form.Errors "per_edition")}}
+      </label>
+      <label>Logo <small>Na dnu kartice. PNG, JPEG, WebP ili SVG, do 2 MB; sprema se 240 px širok.</small>
+        {{with media .Form.Logo}}<img src="{{.}}" alt="Trenutni logo" class="logo on-light">{{end}}
+        <input type="file" name="logo" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml">
+        {{template "err" (index .Form.Errors "logo")}}
+      </label>
+      {{if .Form.Logo}}<label class="check"><input type="checkbox" name="remove_logo" value="1"> Makni logo</label>{{end}}
+      <label class="check"><input type="checkbox" name="enabled" value="1"{{if .Form.Enabled}} checked{{end}}> Uključen</label>
+      <div class="row">
+        <button class="btn btn--main">{{if .Form.ID}}Spremi{{else}}Dodaj izvor{{end}}</button>
+        <button class="btn" type="button" hx-post="/admin/izvori/provjeri" hx-include="#izvor" hx-target="#proba" hx-disabled-elt="this">Isprobaj adresu</button>
+        <span class="spin" aria-hidden="true"></span>
+      </div>
+      <div id="proba"></div>
+    </form>
+  </section>
+
+  {{if .Form.ID}}
+  <div class="stack">
+    <section class="box">
+      <h2>Zadnji dohvat</h2>
+      <p>
+        {{if isnil .Form.LastOK}}<span class="tag">još nije dohvaćen</span>
+        {{else if deref .Form.LastOK}}<span class="tag tag--ok">radi</span> {{whenp .Form.LastFetchAt}} · {{.Form.LastCount}} stavki
+        {{else}}<span class="tag tag--bad">ne radi</span> {{whenp .Form.LastFetchAt}}{{end}}
+      </p>
+      {{if and .Form.LastError (not (deref .Form.LastOK))}}<p class="err">{{.Form.LastError}}</p>{{end}}
+      <form method="post" action="/admin/izvori/{{.Form.ID}}/dohvati" class="row" hx-disabled-elt="find button">
+        {{template "csrf" .CSRF}}
+        <button class="btn">{{template "icon" "rotate-cw"}}Dohvati sada</button>
+        <span class="spin" aria-hidden="true"></span>
+      </form>
+      <p class="muted small">Dohvaća i sprema stavke ovog izvora, kao jutarnji dohvat.</p>
+    </section>
+    <section class="box danger">
+      <h2>Brisanje</h2>
+      <p class="muted">Briše izvor i njegove stavke. Otisnuta izdanja ostaju kakva jesu. Ako ga samo privremeno ne želiš, isključi ga.</p>
+      <form method="post" action="/admin/izvori/{{.Form.ID}}/obrisi" hx-confirm="Obrisati izvor {{.Form.Name}} i sve njegove stavke?">
+        {{template "csrf" .CSRF}}
+        <button class="btn btn--bad">Obriši izvor</button>
+      </form>
+    </section>
+  </div>
+  {{end}}
+</div>
+{{template "close" .}}{{end}}
+
+{{define "test"}}
+<div class="test" role="status">
+  {{if .Err}}
+  <p><span class="tag tag--bad">ne radi</span> {{.Err}}</p>
+  {{else}}
+  <p><span class="tag tag--ok">radi</span> {{.Count}} {{plural .Count "stavka" "stavke" "stavki"}}, {{.Pictures}} sa slikom · {{took .Took}}</p>
+  <ol>
+    {{range .Items}}<li>{{.Title}} <span>{{whenp .PublishedAt}}{{if .PictureURL}} · slika{{end}}</span></li>{{end}}
+  </ol>
+  <p class="muted small">Ništa nije spremljeno. Spremi izvor pa ga dohvati.</p>
+  {{end}}
+</div>
+{{end}}

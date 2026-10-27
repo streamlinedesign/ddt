@@ -1,0 +1,71 @@
+{{define "sve"}}<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sve iz dana · Br. {{.Number}}</title>
+  <script>{{.Assets.EarlyJS}}</script>
+  <style>{{.Assets.CSS}}</style>
+</head>
+<body>
+  <div class="page">
+    <main class="content">
+      <header class="masthead">
+        <div class="masthead-meta">
+          <time class="masthead-date" datetime="{{.Day}}">{{.DayLong}}</time>
+          <span class="masthead-vol">Verzija {{.Version}}</span>
+          <span class="masthead-vol">Br. {{.Number}}</span>
+        </div>
+        <h1 class="masthead-title">Sve iz dana</h1>
+      </header>
+      <nav class="menu" aria-label="Navigacija">
+        <ul class="menu__row">
+          <li class="menu__item"><a class="menu__link" href="index.html">Natrag na tisak</a></li>
+          {{- range .Everything}}
+          <li class="menu__item"><a class="menu__link" href="#sve-{{.Slug}}">{{.Title}}</a></li>
+          {{- end}}
+          <li class="menu__item"><a class="menu__link" href="#tema">Tema</a></li>
+        </ul>
+      </nav>
+
+      <p class="sve-intro">Sve što su izvori objavili u 24 sata prije tiska, po kategorijama i izvorima. U tisku je samo izbor.</p>
+
+{{- range .Everything}}
+      <header class="section-head"><h2 id="sve-{{.Slug}}">{{.Title}}</h2></header>
+      <div class="sve-sources">
+      {{- range .Sources}}
+        <section class="sve-source">
+          <h3 class="panel-title">{{.Name}}<span class="panel-source">{{len .Items}}</span></h3>
+          <ol class="list-cards">
+            {{- range .Items}}
+            <li class="list-cards__item">
+              <a href="{{.Link}}" class="list-cards__title">{{.Title}}</a>
+              {{- with .Time}}<span class="list-cards__meta">{{.}}</span>{{end}}
+            </li>
+            {{- end}}
+          </ol>
+        </section>
+      {{- end}}
+      </div>
+{{- end}}
+
+      <!-- the theme block: the colours and the type, as this edition was printed -->
+      <header class="section-head"><h2 id="tema">Tema</h2></header>
+      <div class="theme-block">
+        <div class="theme-swatches">
+          {{- range .Swatches}}
+          <div class="theme-swatch"><span class="theme-swatch__chip" style="background: var({{.}})"></span><code>{{.}}</code></div>
+          {{- end}}
+        </div>
+        <div class="theme-type">
+          <p class="theme-type__sample theme-type__sample--sans">Geist · Dnevni tisak čita se ujutro, uz kavu. ČĆĐŠŽ čćđšž 0123456789</p>
+          <p class="theme-type__note">Boje se mijenjaju u postavkama ispod; uzorci prate odabir.</p>
+        </div>
+      </div>
+    </main>
+{{template "footer" .}}
+  </div>
+  <script>{{.Assets.PageJS}}</script>
+</body>
+</html>
+{{end}}

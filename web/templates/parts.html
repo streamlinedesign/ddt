@@ -1,0 +1,160 @@
+{{/* Pieces of the daily print, cut from design/index.html. The press fills them from the snapshot. */}}
+
+{{define "masthead"}}
+      <header class="masthead">
+        <div class="masthead-meta">
+          <time class="masthead-date" datetime="{{.Day}}">{{.DayLong}}</time>
+          <span class="masthead-vol">Verzija {{.Version}}</span>
+          <span class="masthead-vol">Br. {{.Number}}</span>
+        </div>
+        <h1 class="masthead-title">Digitalni Dnevni Tisak</h1>
+      </header>
+<nav class="menu" aria-label="Glavna navigacija">
+  <!-- the first row follows the categories' order from the dashboard -->
+  <ul class="menu__row">
+    {{- range .Sections}}{{if .InMenu}}
+    <li class="menu__item"><a class="menu__link" href="#{{.Slug}}">{{.Title}}</a></li>
+    {{- end}}{{end}}
+  </ul>
+  <ul class="menu__row menu__row--utility">
+    <li class="menu__item"><a class="menu__link" href="sve.html">Sve iz dana</a></li>
+    <li class="menu__item"><a class="menu__link" href="{{$.Site}}arhiva/">Arhiva</a></li>
+  </ul>
+</nav>
+{{end}}
+
+{{define "section"}}
+      <header class="section-head">
+        <h2 id="{{.Slug}}">{{.Title}}</h2>
+        {{- with .Flag}}
+        <img src="{{pic .}}" alt="" class="section-head-logo">
+        {{- end}}
+      </header>
+{{- if eq .Layout "six"}}{{template "six" .}}
+{{- else if eq .Layout "list"}}{{template "list" .}}
+{{- else if or (eq .Layout "lead2") (eq .Layout "lead2row3")}}{{template "lead" .}}
+{{- else}}{{template "rows" .}}{{end}}
+{{end}}
+
+{{/* Row of 3, or two rows of 3 */}}
+{{define "rows"}}
+{{- range rows .Cards 3}}
+<div class="grid-3 grid-title">
+  {{- range .}}
+  <div class="col">{{template "card" .}}</div>
+  {{- end}}
+</div>
+{{- end}}
+{{end}}
+
+{{/* Lead + 2: the lead takes two columns and two rows, two cards stack beside it. Then a row of 3 for lead2row3. */}}
+{{define "lead"}}
+{{- $cards := .Cards}}
+<div class="grid-3 grid-title grid-lead">
+  {{- range $i, $c := take $cards 3}}
+  <div class="col{{if eq $i 0}} col--lead{{end}}">{{template "card" $c}}</div>
+  {{- end}}
+</div>
+{{- range rows (skip $cards 3) 3}}
+<div class="grid-3 grid-title">
+  {{- range .}}
+  <div class="col">{{template "card" .}}</div>
+  {{- end}}
+</div>
+{{- end}}
+{{end}}
+
+{{define "card"}}
+    <div class="card">
+      {{- with .Picture}}
+      <figure class="card-pic"><img src="{{pic .}}" alt="" loading="lazy"{{if .W}} width="{{.W}}" height="{{.H}}"{{end}}></figure>
+      {{- end}}
+      <h6><a href="{{.Link}}">{{.Title}}</a></h6>
+      {{- with .Summary}}
+      <p>{{.}}</p>
+      {{- end}}
+    </div>
+    {{template "card-footer" .}}
+{{end}}
+
+{{define "card-footer"}}
+    <div class="card-footer">
+      {{- with .Source.Logo}}
+      <img src="{{pic .}}" alt="{{$.Source.Name}}" class="card-logo">
+      {{- else}}
+      <span class="card-source-name">{{.Source.Name}}</span>
+      {{- end}}
+      <a href="{{.Link}}" aria-label="Otvori članak">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3 2C2.44772 2 2 2.44772 2 3V12C2 12.5523 2.44772 13 3 13H12C12.5523 13 13 12.5523 13 12V8.5C13 8.22386 12.7761 8 12.5 8C12.2239 8 12 8.22386 12 8.5V12H3V3L6.5 3C6.77614 3 7 2.77614 7 2.5C7 2.22386 6.77614 2 6.5 2H3ZM12.8536 2.14645C12.9015 2.19439 12.9377 2.24964 12.9621 2.30861C12.9861 2.36669 12.9996 2.4303 13 2.497L13 2.5V2.50049V5.5C13 5.77614 12.7761 6 12.5 6C12.2239 6 12 5.77614 12 5.5V3.70711L6.85355 8.85355C6.65829 9.04882 6.34171 9.04882 6.14645 8.85355C5.95118 8.65829 5.95118 8.34171 6.14645 8.14645L11.2929 3H9.5C9.22386 3 9 2.77614 9 2.5C9 2.22386 9.22386 2 9.5 2H12.4999H12.5C12.5678 2 12.6324 2.01349 12.6914 2.03794C12.7504 2.06234 12.8056 2.09851 12.8536 2.14645Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path> </svg>
+      </a>
+    </div>
+{{end}}
+
+{{/* Full width list: one column of headlines across the page */}}
+{{define "list"}}
+<ol class="list-cards">
+  {{- range .Cards}}
+  <li class="list-cards__item">
+    <a href="{{.Link}}" class="list-cards__title">{{.Title}}</a>
+    <span class="list-cards__meta">{{.Source.Name}}{{with .Time}} · {{.}}{{end}}</span>
+  </li>
+  {{- end}}
+</ol>
+{{end}}
+
+{{/* Hacker News: two rows of six */}}
+{{define "six"}}
+{{- range rows .Cards 6}}
+<div class="grid-6">
+  {{- range .}}{{$c := .}}
+  <div class="col">
+    <h6><a href="{{.Link}}">{{.Title}}</a></h6>
+    <div class="hn-footer">
+      <p class="hn-author">{{with .Author}}by {{.}}{{end}}{{with .Points}} · {{.}} points{{end}}</p>
+      <p class="hn-url"><a href="{{.Link}}">{{.Link}}</a></p>
+      {{- with .CommentsLink}}
+      <p class="hn-comments"><a href="{{.}}">{{$c.Comments}} {{plural $c.Comments "komentar" "komentara" "komentara"}}</a></p>
+      {{- end}}
+    </div>
+  </div>
+  {{- end}}
+</div>
+{{- end}}
+{{end}}
+
+{{define "footer"}}
+    <footer class="site-footer">
+      <p class="site-footer__copy">© {{.Year}} Digitalni Dnevni Tisak · <a href="{{.Site}}arhiva/">Arhiva</a> · <a href="{{.Sve}}">Sve iz dana</a></p>
+      <details class="settings">
+        <summary class="settings__toggle" aria-label="Postavke">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span>Postavke</span>
+        </summary>
+        <div class="settings__panel">
+
+      <div class="switcher" role="group" aria-label="Color theme">
+        <button class="switch-btn" data-theme="light" aria-label="Light theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg><span>svijetlo</span>
+        </button>
+        <button class="switch-btn" data-theme="dark" aria-label="Dark theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg><span>tamno</span>
+        </button>
+        <button class="switch-btn" data-theme="sepia" aria-label="Sepia, a brown dark theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" transform="rotate(15 12 12)"/>
+            <circle cx="18" cy="6" r="2"/>
+          </svg><span>sepija</span>
+        </button>
+      </div>
+        </div>
+      </details>
+    </footer>
+{{end}}

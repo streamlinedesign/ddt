@@ -1,0 +1,25 @@
+{{define "edition"}}<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digitalni Dnevni Tisak · Br. {{.Number}}</title>
+  <meta name="description" content="Dnevni tisak za {{.DayLong}} Br. {{.Number}}, Verzija {{.Version}}.">
+  <meta name="tisak:printed" content="{{.PrintedAt}}{{with .Reason}} · {{.}}{{end}}">
+  <script>{{.Assets.EarlyJS}}</script>
+  <style>{{.Assets.CSS}}</style>
+</head>
+<body>
+  <div class="page">
+    <main class="content">
+{{template "masthead" .}}
+{{- range .Sections}}
+{{template "section" .}}
+{{- end}}
+    </main>
+{{template "footer" .}}
+  </div>
+  <script>{{.Assets.PageJS}}</script>
+</body>
+</html>
+{{end}}

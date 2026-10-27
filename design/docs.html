@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tisak docs</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #FAF8F3; --bg-subtle: #F1EEE6; --fg: #343831; --fg-muted: #6B6D63;
+    --rule: #DCD7CB; --accent: #5E7356; --code-bg: #F1EEE6;
+    --ff-sans: 'Geist', system-ui, sans-serif; --ff-serif: 'Spectral', Georgia, serif;
+    --ff-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0B0A0C; --bg-subtle: #19191B; --fg: #ECECEA; --fg-muted: #A1A3A5;
+      --rule: #34362F; --accent: #C9D8A8; --code-bg: #19191B;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0B0A0C; --bg-subtle: #19191B; --fg: #ECECEA; --fg-muted: #A1A3A5;
+    --rule: #34362F; --accent: #C9D8A8; --code-bg: #19191B;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 1rem; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--ff-sans); }
+  a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: .2em; }
+  a:hover { color: var(--accent); }
+  .wrap { max-width: 72rem; margin: 0 auto; padding: 2.5rem 1rem 5rem; display: grid; grid-template-columns: 14rem minmax(0, 1fr); gap: 3rem; }
+  header.top { grid-column: 1 / -1; border-bottom: 3px solid var(--fg); padding-bottom: 1rem; }
+  header.top p { margin: .25rem 0 0; color: var(--fg-muted); }
+  .kicker { font-size: .7rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--fg-muted); }
+  h1 { font-size: clamp(2.2rem, 1.6rem + 3vw, 3.6rem); line-height: 1; letter-spacing: -.03em; margin: .3rem 0 0; font-weight: 800; }
+  nav.toc { position: sticky; top: 1.5rem; align-self: start; font-size: .875rem; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--fg); }
+  nav.toc li { border-bottom: 1px solid var(--rule); }
+  nav.toc a { display: block; padding: .4rem 0; text-decoration: none; }
+  main { min-width: 0; }
+  section { border-top: 2px solid var(--fg); padding-top: .9rem; margin-bottom: 3rem; }
+  h2 { font-size: 1.6rem; line-height: 1.15; margin: 0 0 1rem; font-weight: 800; letter-spacing: -.01em; }
+  h3 { font-size: 1.05rem; margin: 1.8rem 0 .5rem; font-weight: 700; }
+  p, li { max-width: 46rem; }
+  .lede { font-family: var(--ff-serif); font-size: 1.2rem; line-height: 1.5; }
+  code, pre, kbd { font-family: var(--ff-mono); font-size: .86em; }
+  code { background: var(--code-bg); padding: .08em .3em; border-radius: 3px; }
+  pre { background: var(--code-bg); padding: .9rem 1rem; overflow-x: auto; border-left: 3px solid var(--accent); line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .5rem 0 1rem; }
+  .tbl { overflow-x: auto; }
+  th, td { text-align: left; vertical-align: top; padding: .45rem .7rem .45rem 0; border-bottom: 1px solid var(--rule); }
+  th { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-muted); border-bottom: 2px solid var(--fg); }
+  td:first-child { white-space: nowrap; }
+  .note { border: 1px solid var(--rule); background: var(--bg-subtle); padding: .8rem 1rem; margin: 1rem 0; max-width: 46rem; }
+  .note strong:first-child { display: block; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: .2rem; }
+  .status { display: inline-block; font-size: .65rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: .1rem .45rem; border: 1px solid currentColor; color: var(--accent); vertical-align: middle; }
+  .status.later { color: var(--fg-muted); }
+  footer.end { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding-top: 1rem; font-size: .85rem; color: var(--fg-muted); }
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; padding-top: 1.5rem; }
+    nav.toc { position: static; }
+    nav.toc ol { columns: 2; column-gap: 1.5rem; }
+    nav.toc li { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="kicker">Digitalni Dnevni Tisak · documentation</span>
+    <h1>How the daily print works</h1>
+    <p>Stage 0, the design freeze · written 27 October 2026 · grows with every stage</p>
+  </header>
+
+  <nav class="toc" aria-label="Contents">
+    <ol>
+      <li><a href="#idea">The idea</a></li>
+      <li><a href="#run">Running it</a></li>
+      <li><a href="#files">Files</a></li>
+      <li><a href="#code">The code</a></li>
+      <li><a href="#sections">The print, section by section</a></li>
+      <li><a href="#settings">Reader settings</a></li>
+      <li><a href="#tokens">Design tokens</a></li>
+      <li><a href="#hooks">Components and hooks</a></li>
+      <li><a href="#game">Riječililica</a></li>
+      <li><a href="#standalone">Standalone editions</a></li>
+      <li><a href="#sources">Sources</a></li>
+      <li><a href="#add-source">Adding a source</a></li>
+      <li><a href="#a11y">Access and paper</a></li>
+      <li><a href="#credits">Credits and licences</a></li>
+      <li><a href="#decisions">Decisions</a></li>
+      <li><a href="#stages">What comes next</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="idea">
+      <h2>The idea</h2>
+      <p class="lede">One edition a day, like a paper on the doorstep. The news is fetched at 04:30, the edition is printed at 05:00, and once it is printed it never changes.</p>
+      <p>Each edition has a number, <strong>Br.</strong>, which counts days since the first print. <strong>Verzija</strong> counts reprints of the same day: if something has to be fixed after 05:00, a new version is printed beside the old one, and the old one stays readable in the archive. Nothing is edited in place.</p>
+      <p>Every edition is a single <code>index.html</code> that stands on its own. It can be saved, mailed or opened from a disk in ten years and it will look and work the same, because it does not call back to any server. The archive is just a folder of these files.</p>
+      <p>The program behind it is one Go binary with Postgres. It fetches, prints and serves the site, and it has a small dashboard (htmx) where the admin writes the main article, manages categories and their sources, and checks the fetchers. There is one user, the admin.</p>
+    </section>
+
+    <section id="run">
+      <h2>Running it</h2>
+      <h3>Today: the static design <span class="status">Stage 0</span></h3>
+      <p>The design folder is plain HTML, CSS and a little JavaScript. Serve it over HTTP rather than opening it from disk, because browsers block some features on <code>file://</code> (the weather icons are CSS masks, and the game fetches its word list).</p>
+<pre><code>cd tisak2/design
+python3 -m http.server 8000
+# open http://localhost:8000/ and http://localhost:8000/docs.html</code></pre>
+      <h3>The program <span class="status">Stage 1</span></h3>
+      <p>It needs Go 1.24 and Postgres 16. Create a role and a database once:</p>
+<pre><code>sudo -u postgres psql -c "CREATE ROLE tisak LOGIN PASSWORD 'tisak'"
+sudo -u postgres psql -c "CREATE DATABASE tisak OWNER tisak"</code></pre>
+      <p>Then build and run it from the <code>tisak2</code> folder:</p>
+<pre><code>go build -o tisak ./cmd/tisak
+./tisak -migrate                    # create the tables and the first categories and sources
+./tisak -check                      # try the database and every source, saving nothing
+./tisak -fetch-now                  # run every fetcher once and show a report
+./tisak -print-now                  # print today's edition (fetches first if the last fetch is old)
+./tisak -print-now -reason "ispravak"   # a reprint: Verzija 2, with its reason in the archive
+./tisak                             # serve the site, with the 04:30 fetch and 05:00 print built in</code></pre>
+      <p>Settings come from flags or the environment. Keys for TMDB and NASA will come from the environment too, from Stage 3 on; they never go in a file.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Flag</th><th>Environment</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td><code>-db</code></td><td><code>DATABASE_URL</code></td><td><code>postgres://tisak:tisak@localhost:5432/tisak</code></td></tr>
+          <tr><td><code>-data</code></td><td><code>TISAK_DATA</code></td><td><code>data</code>: holds <code>media/</code> (the picture store) and <code>editions/</code></td></tr>
+          <tr><td><code>-addr</code></td><td><code>TISAK_ADDR</code></td><td><code>:8080</code></td></tr>
+          <tr><td><code>-site</code></td><td><code>TISAK_SITE</code></td><td><code>/</code>: the site's root, for the archive link printed in each edition</td></tr>
+          <tr><td><code>-fetch-at</code>, <code>-print-at</code></td><td></td><td><code>04:30</code>, <code>05:00</code>, Zagreb time</td></tr>
+          <tr><td><code>-dev</code></td><td></td><td>off; when on, templates and styles are read from <code>./web</code> on every print, so edits show without a rebuild</td></tr>
+        </tbody>
+      </table></div>
+      <p>If the program starts after 05:00 and today has no edition yet, it fetches and prints straight away, so a restart or a late deploy never skips a day.</p>
+      <h3>Addresses</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>Address</th><th>What it serves</th></tr></thead>
+        <tbody>
+          <tr><td><code>/</code></td><td>Today's newest edition, with its <code>sve.html</code> and <code>images/</code> beside it.</td></tr>
+          <tr><td><code>/2026/10/27/</code></td><td>That day's newest version.</td></tr>
+          <tr><td><code>/2026/10/27/v1/</code></td><td>That exact version. It never changes, so it is cached for a year.</td></tr>
+          <tr><td><code>/arhiva/</code></td><td>Every edition by month, with its number, version, reason and size.</td></tr>
+          <tr><td><code>/sve/</code></td><td>Sends you to today's Sve iz dana.</td></tr>
+          <tr><td><code>/healthz</code></td><td>Says <code>ok</code>, for the host's health check.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Tests</h3>
+<pre><code>go test ./...                                                              # parsers, pictures, press
+TISAK_TEST_DB=postgres://tisak:tisak@localhost/tisak_test go test ./...   # plus the numbering, on a throwaway database</code></pre>
+    </section>
+
+    <section id="files">
+      <h2>Files</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Path</th><th>What it is</th></tr></thead>
+        <tbody>
+          <tr><td><code>index.html</code></td><td>The edition. Today it holds sample content; later the press writes it from templates.</td></tr>
+          <tr><td><code>index.css</code></td><td>All styles, in numbered sections (1 reset to 39 paper print). Search for <code>---------- 35.</code> to jump to one.</td></tr>
+          <tr><td><code>fonts.css</code>, <code>fonts/</code></td><td>Self-hosted Geist (variable, 100 to 900) and Spectral (400 to 800, with italics), latin and latin-ext.</td></tr>
+          <tr><td><code>icons/weather/</code></td><td>Meteocons. <code>monochrome/</code> is used, painted in the text colour; <code>fill/</code> is kept for later.</td></tr>
+          <tr><td><code>sources/</code></td><td>Source logos used by Izvori and the card footers.</td></tr>
+          <tr><td><code>vendor/matter-0.20.0.min.js</code></td><td>Physics for Izvori, loaded only when that section scrolls into view.</td></tr>
+          <tr><td><code>images.js</code></td><td>Image viewer: any <code>&lt;img data-viewer&gt;</code> opens full screen on click.</td></tr>
+          <tr><td><code>rijeci.txt</code></td><td>Riječililica guess list: 16,462 five-letter Croatian words, one per line.</td></tr>
+          <tr><td><code>../research/rijecililica-odgovori.txt</code></td><td>Riječililica answers: 1,183 common words. Stays on the server, never ships in an edition.</td></tr>
+          <tr><td><code>../research/fetch-samples.sh</code></td><td>Saves a sample of every source to <code>samples/</code> so fetchers can be written against real files.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="code">
+      <h2>The code <span class="status">Stage 1</span></h2>
+      <p>One module, <code>tisak</code>, with a package for each job. Each one is small enough to read in one sitting.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Package</th><th>Job</th></tr></thead>
+        <tbody>
+          <tr><td><code>cmd/tisak</code></td><td>The binary: flags, the daily loop, and <code>seed.go</code> with the first categories and sources.</td></tr>
+          <tr><td><code>internal/store</code></td><td>Postgres. Migrations are numbered SQL files built into the binary; tables are media, categories, sources, items and editions.</td></tr>
+          <tr><td><code>internal/fetch</code></td><td>Fetchers, one per kind (<code>rss</code>, <code>hn</code>), and the runner that calls them four at a time with a 60 second limit each and records how each one did.</td></tr>
+          <tr><td><code>internal/media</code></td><td>The picture store: download, shrink, name by hash.</td></tr>
+          <tr><td><code>internal/press</code></td><td>Picks the cards, freezes them into a snapshot, renders the templates and writes the edition folder.</td></tr>
+          <tr><td><code>internal/site</code></td><td>Serves finished editions from disk and the archive page. It never renders news itself.</td></tr>
+          <tr><td><code>web/templates</code>, <code>web/static</code></td><td>The page, cut from this design, plus the CSS, fonts, icons and scripts. All built into the binary.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>How a print picks cards</h3>
+      <ul>
+        <li>Each category has a layout, which sets how many cards it holds: <code>row3</code> 3, <code>rows3</code> 6, <code>lead2</code> 3, <code>lead2row3</code> 6, <code>list</code> 12, <code>six</code> 12 (Hacker News).</li>
+        <li>Each source has a share per edition. The press takes the newest items from the last 36 hours, a few from each source in turn, until the layout is full, and skips a story another source already carried.</li>
+        <li>In a category with a lead picture, the first card that has one goes to the lead spot.</li>
+        <li>Sve iz dana lists everything fetched in the last 24 hours, by category and source.</li>
+        <li>What was picked is stored with the edition as JSON, so any edition can be inspected or rendered again later.</li>
+      </ul>
+    </section>
+
+    <section id="sections">
+      <h2>The print, section by section</h2>
+      <p>The page runs top to bottom in this order. Each section has an <code>id</code> so the menu under the masthead can jump to it. The grid is three columns everywhere, except Hacker News, which is six.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Section</th><th>id</th><th>Fed by</th><th>Layout</th></tr></thead>
+        <tbody>
+          <tr><td>Masthead</td><td></td><td>The press: date, Verzija, Br.</td><td>Date left, version centre, number right; menu in two rows below.</td></tr>
+          <tr><td>Main article + rail</td><td></td><td>The admin (main article); DHMZ (weather); Hrvatska enciklopedija (word of the day); album of the day; NASA APOD</td><td>Article two thirds, rail one third. On phones the rail drops below.</td></tr>
+          <tr><td>Vijesti</td><td><code>vijesti</code></td><td>HRT feeds</td><td>3 columns of cards.</td></tr>
+          <tr><td>Glazba</td><td><code>glazba</code></td><td>Loudwire, Glazba.hr, Muzika.hr; Billboard</td><td>Cards in two columns, Billboard top 10 in the third, with Pjesme and Albumi tabs.</td></tr>
+          <tr><td>Kultura</td><td><code>kultura</code></td><td>Category sources</td><td>3 columns.</td></tr>
+          <tr><td>Događanja</td><td><code>dogadanja</code></td><td>Category sources</td><td>Posters on a wall: they scatter in, can be dragged, and Tidy lines them up.</td></tr>
+          <tr><td>Filmovi</td><td><code>filmovi</code></td><td>TMDB (Croatian releases)</td><td>Preporuke tjedna, then Uskoro u kinima by day. 4 posters across, 2 on a phone.</td></tr>
+          <tr><td>Kazališta</td><td><code>kazalista</code></td><td>Nine Zagreb theatres</td><td>Two tabs, this week and next. Each day folds; each show has a picture or a lettered card.</td></tr>
+          <tr><td>Tehnologija</td><td><code>tehnologija</code></td><td>Bug; Hacker News</td><td>3 columns, then Hacker News at 6.</td></tr>
+          <tr><td>Sport</td><td><code>sport</code></td><td>HRT sport, Germanijak; TheSportsDB</td><td>News cards with the match card in the middle (first on phones).</td></tr>
+          <tr><td>Riječililica</td><td><code>rijecililica</code></td><td>The press draws a word</td><td>Rules, board, your streak. On phones the board comes first.</td></tr>
+          <tr><td>Večera</td><td><code>vecera</code></td><td>Recipes</td><td>Three courses and a cocktail.</td></tr>
+          <tr><td>O tisku</td><td><code>o-tisku</code></td><td>Fixed text</td><td>3 columns.</td></tr>
+          <tr><td>Izvori</td><td><code>izvori</code></td><td>The list of sources</td><td>Logos that fall and can be thrown; a plain row without JavaScript.</td></tr>
+          <tr><td>Kontakt</td><td><code>kontakt</code></td><td>Fixed text</td><td>Channels and a form.</td></tr>
+          <tr><td>Footer</td><td></td><td></td><td>Copyright, Arhiva, Sve iz dana, and the settings gear.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="settings">
+      <h2>Reader settings</h2>
+      <p>The gear in the footer opens a small panel. Each choice is an attribute on <code>&lt;html&gt;</code> and is remembered in the reader's browser. A tiny script in <code>&lt;head&gt;</code> sets the attributes before the page paints, so there is no flash of the wrong theme.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Setting</th><th>Attribute</th><th>Values (first is default)</th><th>Stored as</th></tr></thead>
+        <tbody>
+          <tr><td>Type</td><td><code>data-type</code></td><td><code>sans</code> (Geist), <code>serif</code> (Spectral)</td><td><code>type</code></td></tr>
+          <tr><td>Look</td><td><code>data-mode</code></td><td><code>digital</code>, <code>print</code> (newspaper: page frame, double rules)</td><td><code>mode</code></td></tr>
+          <tr><td>Colours</td><td><code>data-theme</code></td><td>light (no attribute), <code>dark</code>, <code>sepia</code> (the dark theme in browns)</td><td><code>theme</code></td></tr>
+          <tr><td>City</td><td><code>#city</code> select</td><td>Zagreb, Split, Rijeka, Osijek, Zadar, Pula, Dubrovnik, Varaždin. Every city's forecast is printed into the page as a <code>.weather-day[data-city]</code> block; the picker only chooses which one shows.</td><td><code>city</code></td></tr>
+        </tbody>
+      </table></div>
+      <p>Every read and write of <code>localStorage</code> is wrapped in <code>try</code>, so a private window or blocked storage only means the page forgets the choice; it never breaks.</p>
+    </section>
+
+    <section id="tokens">
+      <h2>Design tokens</h2>
+      <p>Colours live in section 2 of <code>index.css</code>, type in section 3, and the look (digital or newspaper) in section 4. Components use only the tokens, so a theme is a short list of values.</p>
+      <h3>Colour</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>Token</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><code>--bg</code>, <code>--bg-subtle</code></td><td>Page, and quiet fills (hover, keys, poster placeholders).</td></tr>
+          <tr><td><code>--fg</code>, <code>--fg-muted</code></td><td>Text, and secondary text (dates, labels, sources).</td></tr>
+          <tr><td><code>--border</code>, <code>--rule</code></td><td>Hairlines between cards, and rules.</td></tr>
+          <tr><td><code>--accent</code></td><td>One colour per theme: links on hover, high temperature, the chart's arrows.</td></tr>
+          <tr><td><code>--paper</code>, <code>--ink</code></td><td>The newspaper look's page and text.</td></tr>
+          <tr><td><code>--game-ok</code>, <code>--game-near</code></td><td>Riječililica green and gold. Kept apart from <code>--accent</code> because the dark accent is a pale yellow.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Type</h3>
+      <p><code>--ff-sans</code> is Geist and <code>--ff-serif</code> is Spectral. <code>--font-head</code> and <code>--font-body</code> switch with <code>data-type</code>; <code>--font-ui</code> (labels, tabs, dates) stays Geist in both, so small text stays crisp. Weights come from <code>--w-head</code>, <code>--w-sub</code> and friends.</p>
+      <h3>Look</h3>
+      <p><code>--col-rule</code>, <code>--rule-light</code>, <code>--section-rule</code> and <code>--panel-top</code> are thin single lines in the digital look and become double and heavier rules in the newspaper look. Components never draw their own borders from raw colours.</p>
+    </section>
+
+    <section id="hooks">
+      <h2>Components and hooks</h2>
+      <p>Behaviour hangs off <code>data-</code> attributes, so the press only has to print the right markup.</p>
+      <h3>Tabs: <code>data-tabs</code></h3>
+      <p>Any element with <code>data-tabs</code> becomes a tab box. Buttons carry <code>data-tab="key"</code>; the panel with the matching <code>data-panel="key"</code> is shown and the rest get <code>hidden</code>. Arrow keys move between tabs. Used by Billboard and Kazališta.</p>
+<pre><code>&lt;div data-tabs&gt;
+  &lt;button data-tab="hot100" class="is-active"&gt;Pjesme&lt;/button&gt;
+  &lt;button data-tab="b200"&gt;Albumi&lt;/button&gt;
+  &lt;ol data-panel="hot100"&gt;…&lt;/ol&gt;
+  &lt;ol data-panel="b200" hidden&gt;…&lt;/ol&gt;
+&lt;/div&gt;</code></pre>
+      <h3>Folding days</h3>
+      <p>Each theatre day is a <code>&lt;details class="theaters__day"&gt;</code> with the day header as its <code>&lt;summary&gt;</code>. Days start folded, so two weeks fit on a screen; the header shows the date and how many shows there are, and a plus or minus shows the state. It works without any script.</p>
+      <h3>Weather icons: <code>.wx</code></h3>
+      <p>An icon is <code>&lt;i class="wx" style="--wx:url(icons/weather/monochrome/rain.svg)"&gt;</code>. The SVG is used as a CSS mask over <code>currentColor</code>, so icons follow the theme. When the press inlines an edition it will turn these into data URIs.</p>
+      <h3>Show pictures</h3>
+      <p>A show with a picture prints <code>&lt;figure class="theaters__poster"&gt;&lt;img&gt;</code>. A show without one prints <code>theaters__poster--type</code> with the theatre's initials, so the list keeps its rhythm.</p>
+      <h3>Izvori: <code>data-play</code></h3>
+      <p><code>data-play</code> holds the path to matter.js. When the section comes near the screen the script loads it, turns every <code>.chip</code> into a body, and starts the simulation; it pauses when the section leaves the screen. The <code>[data-play-shake]</code> button appears only once physics runs. With reduced motion, or without JavaScript, the chips simply sit in rows.</p>
+      <h3>Images: <code>data-viewer</code></h3>
+      <p>Add <code>data-viewer</code> to an image to make it open full screen. Optional <code>data-full</code> gives a bigger file and <code>data-caption</code> a caption.</p>
+    </section>
+
+    <section id="game">
+      <h2>Riječililica</h2>
+      <p>Guess a five-letter word in six tries. Green is the right letter in the right place, gold is a letter that is in the word somewhere else, grey is a letter that is not in the word. Lj, nj and dž count as two letters, so <em>ljudi</em> is l, j, u, d, i.</p>
+      <h3>Where the word comes from</h3>
+      <p>At 05:00 the press draws a random word from <code>rijecililica-odgovori.txt</code> skipping any word used in the last year, and records it with the date. The list has 1,183 words, so there is always plenty left to draw from. Nobody sets it by hand, so the admin can play too.</p>
+      <h3>Why there is no answer endpoint</h3>
+      <p>A check on the server would stop old editions working on their own. Instead the answer is printed into the page, scrambled with the edition's date, and checked in the browser. This keeps honest people honest; it is not meant to stop someone reading the source.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Attribute</th><th>Holds</th></tr></thead>
+        <tbody>
+          <tr><td><code>data-game</code></td><td>The scrambled answer, base64.</td></tr>
+          <tr><td><code>data-game-day</code></td><td>The edition date, <code>YYYY-MM-DD</code>. It is the key for unscrambling and for saving the game.</td></tr>
+          <tr><td><code>data-game-n</code></td><td>The game number, shown when sharing.</td></tr>
+          <tr><td><code>data-game-list</code></td><td>Path to the guess list.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>The scramble</h3>
+      <p>Fold the digits of the date into a seed, then XOR each byte of the UTF-8 word with a value from the seed and its position.</p>
+<pre><code>// Go, in the press
+func scramble(word, day string) string {
+	seed := 0
+	for _, c := range day {
+		if c &gt;= '0' &amp;&amp; c &lt;= '9' {
+			seed = (seed*10 + int(c-'0')) % 251
+		}
+	}
+	b := []byte(word)
+	for i := range b {
+		b[i] ^= byte((seed + i*73 + 41) &amp; 255)
+	}
+	return base64.StdEncoding.EncodeToString(b)
+}</code></pre>
+      <p>The page does the same steps in reverse. For 27 October 2026 and <em>oblak</em> the result is <code>DsifXe4=</code>, which is what the sample page carries.</p>
+      <h3>Guesses</h3>
+      <p>The guess list is fetched the first time the reader touches the board. A guess that is not on the list is refused with a shake. If the list cannot be loaded (for example a saved copy opened from disk), any five letters are accepted, so the game is never stuck.</p>
+      <h3>Saved games</h3>
+      <p>Games are kept in <code>localStorage</code> under <code>tisak-rijecililica</code> as <code>{"games": {"2026-10-27": {"g": ["krava","oblak"], "done": 1}}}</code>, where <code>done</code> is 1 for a win and 2 for a loss. Played, win rate, current run and longest run are counted from that. Sharing copies a grid of coloured squares, never the word.</p>
+    </section>
+
+    <section id="standalone">
+      <h2>Standalone editions</h2>
+      <p>These rules hold for every printed edition:</p>
+      <ul>
+        <li>No requests back to the server. No API calls, no answer checks, no analytics inside the edition.</li>
+        <li>Styles and scripts are inlined, and pictures are saved next to the page (or inlined when small), so a source deleting a picture does not break an old edition.</li>
+        <li>Links point outward to the original articles; the edition carries the headline and summary, not the full text.</li>
+        <li>Everything a section needs is printed into the page: all eight cities' forecasts, and the Riječililica guess list (about 100 KB, in a <code>&lt;script type="text/plain" data-game-words&gt;</code>), so the game still refuses made-up words when opened from disk.</li>
+        <li>Optional parts fail quietly: without JavaScript the tabs show their first panel, the days stay open, the game says it needs JavaScript and Izvori shows its rows.</li>
+      </ul>
+      <h3>Checking it</h3>
+      <p>The press writes each edition to <code>data/editions/2026/10/27/v1/</code>: <code>index.html</code>, <code>sve.html</code> and <code>images/</code>. It writes into a temporary folder and renames it when complete, so a half-written edition is never served. Copy that folder anywhere and open <code>index.html</code> from disk: fonts, pictures and the link to Sve iz dana all work with no network. <code>samples/edition-2026-10-27-v2/</code> is a real one to try.</p>
+      <p>For the static design, <code>tools/pack.py</code> does by hand what the press does: it inlines the stylesheets, scripts, fonts, icons and local pictures into one file.</p>
+<pre><code>python3 tools/pack.py design/index.html design/standalone.html</code></pre>
+      <p>Opened from disk with no other files beside it, that file has no errors: fonts and icons load, the city picker works, the game refuses made-up words, and Izvori runs. Without inlining, a browser blocks fonts, mask icons and the word list on <code>file://</code>, which is why the design folder itself must be served over HTTP.</p>
+      <h3>Pictures: saved first, printed after</h3>
+      <p>The 04:30 fetch downloads the pictures a print can use (only for categories with a lead picture, and only for the few newest items of each source), shrinks them to at most 1000 px wide and keeps them in a picture store named by their contents, so the same picture on ten days is stored once. Photos are saved as JPEG at quality 78, pictures with transparency as PNG, and SVG logos as they are. WebP was the plan, but Go cannot write WebP without C code, and JPEG at this size is close enough. The 05:00 press never touches the network: it takes pictures only from the store and links them into the edition's <code>images/</code> folder (hard links, so they cost no extra disk). A picture that failed to download prints as the lettered card instead.</p>
+      <h3>Sizes</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>Part</th><th>Size</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Fonts</td><td>about 150 KB</td><td>Geist cut to Croatian and English letters is 25 KB; Spectral in the weights used, about 23 KB each.</td></tr>
+          <tr><td>Riječililica word list</td><td>about 100 KB</td><td>Inline, so the game checks words offline.</td></tr>
+          <tr><td>matter.js</td><td>about 110 KB</td><td>Inline as text, started only when Izvori is on screen.</td></tr>
+          <tr><td>Styles, scripts, icons</td><td>about 80 KB</td><td></td></tr>
+          <tr><td>The day's content</td><td>about 150 KB</td><td>Mostly the two weeks of theatre.</td></tr>
+          <tr><td><strong>index.html</strong></td><td><strong>about 600 KB</strong></td><td>About 200 KB over the wire, compressed.</td></tr>
+          <tr><td>images/</td><td>about 0.7 MB</td><td>Around 40 pictures at about 13 KB each, plus the cover and NASA. The originals were about 270 KB each.</td></tr>
+          <tr><td><strong>One edition</strong></td><td><strong>about 1.3 MB</strong></td><td>About 0.5 GB a year, less on disk because repeated pictures are stored once.</td></tr>
+        </tbody>
+      </table></div>
+      <p>These are estimates for the full edition, from the 27 October sample.</p>
+      <h3>Measured: the first real print <span class="status">Stage 1</span></h3>
+      <p>Br. 1, Verzija 2, 27 October, with news, music, culture, technology, Hacker News and sport (no rail, films, theatres or game yet):</p>
+      <div class="tbl"><table>
+        <thead><tr><th>File</th><th>Size</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>index.html</td><td>345 KB</td><td>196 KB compressed. About 170 KB of it is the inlined fonts, which barely compress.</td></tr>
+          <tr><td>sve.html</td><td>368 KB</td><td>Carries its own copy of the fonts and styles, so it also stands alone.</td></tr>
+          <tr><td>images/</td><td>128 KB</td><td>Six pictures: the lead photos and source logos.</td></tr>
+          <tr><td><strong>One edition</strong></td><td><strong>about 0.7 MB</strong></td><td>The press logs the size of every edition, and the archive shows it.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="sources">
+      <h2>Sources</h2>
+      <p>Sources belong to categories, and every source is listed in the dashboard with its logo, so a new fetcher only needs a row and a small Go type. News fetchers read RSS or a page and give items; data fetchers (weather, films, charts, theatres, sport fixtures) give structured rows for their own section.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Category</th><th>Sources</th></tr></thead>
+        <tbody>
+          <tr><td>Vijesti</td><td>HRT (ten feeds)</td></tr>
+          <tr><td>Glazba</td><td>Loudwire, Glazba.hr, Muzika.hr; Billboard Hot 100 and Billboard 200 (weekly)</td></tr>
+          <tr><td>Tehnologija</td><td>Bug, Hacker News</td></tr>
+          <tr><td>Sport</td><td>HRT sport, Germanijak; TheSportsDB for fixtures</td></tr>
+          <tr><td>Filmovi</td><td>TMDB, Croatian release dates</td></tr>
+          <tr><td>Kazališta</td><td>HNK Zagreb, Kerempuh, Gavella, Komedija, Teatar EXIT, Luda kuća, KNAP, Scenoteka, Aplauz</td></tr>
+          <tr><td>Rail</td><td>DHMZ (7-day forecast, Zagreb-Grič), Hrvatska enciklopedija (word of the day), NASA APOD</td></tr>
+        </tbody>
+      </table></div>
+      <p>The full source list with URLs, keys and quirks is in the rebuild plan. API keys never go in the code or in files; they come from the environment.</p>
+    </section>
+
+    <section id="add-source">
+      <h2>Adding a source <span class="status later">Stage 2</span></h2>
+      <p>Until the dashboard exists, an RSS source is a line in <code>cmd/tisak/seed.go</code> (name, kind, URL, logo, share per edition, and a time zone for feeds that write local time but label it GMT, as Germanijak does). The seed only runs on an empty database, so on a running one add the row with SQL. The plan once the dashboard exists:</p>
+      <ol>
+        <li>Save a sample of the feed or page in <code>research/samples/</code> (add a line to <code>fetch-samples.sh</code>).</li>
+        <li>If it is RSS or Atom, no code is needed: in the dashboard, open Sources, add the URL, pick its category and upload its logo.</li>
+        <li>If it is anything else, write a fetcher: a Go type with a name and a <code>Fetch</code> method, plus a test that reads the saved sample. Register it, and it shows up in the Sources list.</li>
+        <li>Run <code>tisak -fetch-now</code>, check the items on the Today page, and the next print picks them up.</li>
+      </ol>
+    </section>
+
+    <section id="a11y">
+      <h2>Access and paper</h2>
+      <ul>
+        <li>Tabs use <code>role="tab"</code> and <code>aria-selected</code>; the game board announces each row (for example "krava: drugdje, nema, drugdje, nema, nema") and its message line is a live region.</li>
+        <li>The physics and the poster wall respect <code>prefers-reduced-motion</code>.</li>
+        <li>Printing on paper hides the game, Izvori and the settings panel, and keeps text black on white.</li>
+        <li>Layouts are checked at 1440 and 390 pixels wide with no sideways scrolling.</li>
+      </ul>
+    </section>
+
+    <section id="credits">
+      <h2>Credits and licences</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>What</th><th>Licence</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Geist</td><td>SIL Open Font License 1.1</td><td>Vercel with basement.studio. <code>fonts/LICENSE-Geist.txt</code></td></tr>
+          <tr><td>Spectral</td><td>SIL Open Font License 1.1</td><td>Production Type. <code>fonts/LICENSE-Spectral.txt</code></td></tr>
+          <tr><td>Meteocons</td><td>MIT</td><td>Bas Milius. <code>icons/weather/LICENSE.txt</code></td></tr>
+          <tr><td>matter.js 0.20.0</td><td>MIT</td><td>Liam Brummitt and contributors. <code>vendor/LICENSE-matter-js.txt</code></td></tr>
+          <tr><td>Film data</td><td>TMDB terms</td><td>The page must carry: "This product uses the TMDB API but is not endorsed or certified by TMDB." Shown under Filmovi in Croatian.</td></tr>
+          <tr><td>Weather</td><td>DHMZ</td><td>Linked from the weather panel.</td></tr>
+          <tr><td>Word lists</td><td>See note</td><td>Guess list from hr5.txt; answers chosen from the Hunspell hr_HR dictionary and ranked with the OpenSubtitles frequency list (FrequencyWords, CC BY-SA 4.0).</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="decisions">
+      <h2>Decisions</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Date</th><th>Decision</th></tr></thead>
+        <tbody>
+          <tr><td>27 Oct 2026</td><td>Rebuild from a clean start in Go, htmx and Postgres, one binary. No old data carried over.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Keep the first design. Three columns everywhere, six for Hacker News. Films four across, two on a phone.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Out: custom themes, the Sunday special, Aktura, Gambetta, likes, users other than the admin, Večernji and Jutarnji.</td></tr>
+          <tr><td>27 Oct 2026</td><td>In: Germanijak for sport; Muzika.hr stays.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Looks: sans (Geist), serif (Spectral), digital, newspaper; light, dark, sepia.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Sepia becomes a dark theme in browns.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Weather shows low and high plus morning, afternoon and night, with Meteocons, and the city picker stays.</td></tr>
+          <tr><td>27 Oct 2026</td><td>The game is renamed Riječililica; the word is drawn at random at print time and checked in the browser, with no endpoint.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Every edition's <code>index.html</code> stands on its own.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Theatres show two weeks, each day folds, each show has a picture or a lettered card.</td></tr>
+          <tr><td>27 Oct 2026</td><td>The code lives in a public GitHub repository.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Theatre days start folded.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Pictures are stored as JPEG (PNG with transparency), at most 1000 px wide, and only for sections that show them.</td></tr>
+          <tr><td>27 Oct 2026</td><td>Hacker News is its own category with the six-column layout, kept out of the menu.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="stages">
+      <h2>What comes next</h2>
+      <p>This document grows with the code. Each stage adds its part here before it is called done.</p>
+      <ol>
+        <li><strong>Stage 0</strong>: design freeze, samples of every source, this document. <span class="status">done</span></li>
+        <li><strong>Stage 1</strong> <span class="status">done</span>, the core print: skeleton, categories, sources and items, RSS and Hacker News fetchers, the press, Br. and Verzija, the archive and <code>/sve/</code>, standalone <code>index.html</code>.</li>
+        <li><strong>Stage 2</strong>, the dashboard core: login, Today, Categories, Sources with images, Account.</li>
+        <li><strong>Stage 3</strong>, the daily content: articles and the main article, the rail (weather, word, album, NASA).</li>
+        <li><strong>Stage 4</strong>, culture: films, theatres with pictures, the events wall, Billboard.</li>
+        <li><strong>Stage 5</strong>, sport and play: matches, Riječililica, Večera, O tisku, Izvori, Kontakt with its inbox, the image viewer.</li>
+        <li><strong>Stage 6</strong> list: magazine (sport and celebrities), reviews, sport events beside sport news, analytics, PWA and link previews, deploy.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="end">Digitalni Dnevni Tisak · docs.html · Stage 1</footer>
+</div>
+</body>
+</html>

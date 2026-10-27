@@ -1,0 +1,118 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Kategorije</h1>
+    <p>Redoslijed ovdje je redoslijed u izdanju. Kategorija bez stavki ne izlazi.</p>
+  </div>
+</div>
+
+<section class="box">
+  <div class="tbl"><table>
+    <thead><tr><th>Redoslijed</th><th>Kategorija</th><th class="hide-phone">Raspored</th><th class="num">Izvora</th><th>U izborniku</th><th></th></tr></thead>
+    <tbody>
+    {{range $i, $c := .Rows}}
+      <tr{{if not .Enabled}} class="off"{{end}}>
+        <td>
+          <div class="row">
+            <form method="post" action="/admin/kategorije/{{.ID}}/pomakni">{{template "csrf" $.CSRF}}<input type="hidden" name="smjer" value="gore"><button class="btn btn--icon" aria-label="Pomakni gore"{{if eq $i 0}} disabled{{end}}>{{template "icon" "arrow-up"}}</button></form>
+            <form method="post" action="/admin/kategorije/{{.ID}}/pomakni">{{template "csrf" $.CSRF}}<input type="hidden" name="smjer" value="dolje"><button class="btn btn--icon" aria-label="Pomakni dolje"{{if eq (add $i 1) (len $.Rows)}} disabled{{end}}>{{template "icon" "arrow-down"}}</button></form>
+          </div>
+        </td>
+        <td>
+          {{with media .Flag}}<img src="{{.}}" alt="" class="logo on-light"> {{end}}
+          <a href="/admin/kategorije/{{.ID}}"><strong>{{.Title}}</strong></a>
+          <span class="muted small">#{{.Slug}}</span>
+          {{if not .Enabled}}<span class="tag">isključena</span>{{end}}
+        </td>
+        <td class="hide-phone muted">{{.Layout}}{{if .LeadPicture}} · sa slikom{{end}}</td>
+        <td class="num"><a href="/admin/izvori#k{{.ID}}">{{.Sources}}</a></td>
+        <td>{{if .InMenu}}da{{else}}<span class="muted">ne</span>{{end}}</td>
+        <td class="num"><a class="btn btn--small" href="/admin/kategorije/{{.ID}}">Uredi</a></td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="box">
+  <h2>Nova kategorija</h2>
+  <form method="post" action="/admin/kategorije" class="form">
+    {{template "csrf" .CSRF}}
+    {{template "fields" .}}
+    <div><button class="btn btn--main">Dodaj kategoriju</button></div>
+  </form>
+</section>
+{{template "close" .}}{{end}}
+
+{{define "fields"}}
+    <label>Naslov <small>Kako stoji u izdanju i izborniku.</small>
+      <input type="text" name="title" value="{{.Form.Title}}" maxlength="60" required>
+      {{template "err" (index .Form.Errors "title")}}
+    </label>
+    <label>Oznaka <small>Za poveznice na odjeljak, npr. vijesti. Prazno: napravi se iz naslova.</small>
+      <input type="text" name="slug" value="{{.Form.Slug}}" maxlength="40" pattern="[a-z0-9]+(-[a-z0-9]+)*">
+      {{template "err" (index .Form.Errors "slug")}}
+    </label>
+    <label>Raspored
+      <select name="layout">
+        {{range .Layouts}}<option value="{{.Name}}"{{if eq .Name $.Form.Layout}} selected{{end}}>{{.Label}} ({{.Cards}} {{plural .Cards "kartica" "kartice" "kartica"}})</option>{{end}}
+      </select>
+      {{template "err" (index .Form.Errors "layout")}}
+    </label>
+    <fieldset>
+      <label class="check"><input type="checkbox" name="lead_picture" value="1"{{if .Form.LeadPicture}} checked{{end}}> Velika slika na prvoj kartici <small>(slike se dohvaćaju samo za ove kategorije)</small></label>
+      <label class="check"><input type="checkbox" name="in_menu" value="1"{{if .Form.InMenu}} checked{{end}}> U izborniku ispod zaglavlja</label>
+      <label class="check"><input type="checkbox" name="enabled" value="1"{{if .Form.Enabled}} checked{{end}}> Uključena</label>
+    </fieldset>
+{{end}}
+
+{{define "edit"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <a class="back" href="/admin/kategorije">{{template "icon" "arrow-left"}}Kategorije</a>
+    <h1>{{.Form.Title}}</h1>
+  </div>
+</div>
+
+<div class="two">
+  <section class="box">
+    <form method="post" action="/admin/kategorije/{{.Form.ID}}" enctype="multipart/form-data" class="form">
+      {{template "csrf" .CSRF}}
+      {{template "fields" .}}
+      <label>Slika uz naslov <small>Neobavezno, npr. zastavica. PNG, JPEG, WebP ili SVG, do 2 MB.</small>
+        {{with media .Form.Flag}}<img src="{{.}}" alt="Trenutna slika" class="logo on-light">{{end}}
+        <input type="file" name="flag" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml">
+        {{template "err" (index .Form.Errors "flag")}}
+      </label>
+      {{if .Form.Flag}}<label class="check"><input type="checkbox" name="remove_flag" value="1"> Makni sliku</label>{{end}}
+      <div><button class="btn btn--main">Spremi</button></div>
+    </form>
+  </section>
+
+  <div class="stack">
+    <section class="box">
+      <div class="box__head">
+        <h2>Izvori</h2>
+        <a class="btn btn--small" href="/admin/izvori/novi?kategorija={{.Form.ID}}">Dodaj izvor</a>
+      </div>
+      {{if .Sources}}
+      <ul class="stack list">
+        {{range .Sources}}<li><a href="/admin/izvori/{{.ID}}">{{.Name}}</a> <span class="muted small">{{.PerEdition}} po izdanju{{if not .Enabled}} · isključen{{end}}</span></li>{{end}}
+      </ul>
+      {{else}}<p class="muted">Još nema izvora.</p>{{end}}
+    </section>
+
+    <section class="box danger">
+      <h2>Brisanje</h2>
+      {{if .Sources}}
+      <p class="muted">Kategorija s izvorima ne može se obrisati. Premjesti ili obriši izvore, ili je samo isključi.</p>
+      {{else}}
+      <form method="post" action="/admin/kategorije/{{.Form.ID}}/obrisi" hx-confirm="Obrisati kategoriju {{.Form.Title}}?">
+        {{template "csrf" .CSRF}}
+        <button class="btn btn--bad">Obriši kategoriju</button>
+      </form>
+      {{end}}
+    </section>
+  </div>
+</div>
+{{template "close" .}}{{end}}

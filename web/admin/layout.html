@@ -1,0 +1,78 @@
+{{/* The frame every dashboard page shares. Pages define "page" and call "open" and "close". */}}
+{{define "head"}}<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="dark light">
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false, "allowScriptTags": false, "historyCacheSize": 0}'>
+  <title>{{.Title}} · Tisak</title>
+  <script src="/admin/static/admin-early.js"></script>
+  <link rel="stylesheet" href="/admin/static/fonts.css">
+  <link rel="stylesheet" href="/admin/static/admin.css">
+  <script src="/admin/static/vendor/htmx-2.0.4.min.js" defer></script>
+  <script src="/admin/static/admin.js" defer></script>
+</head>
+{{end}}
+
+{{define "brand"}}<a class="brand" href="/admin/"><span class="mark" aria-hidden="true">T</span><span class="brand-text"><strong>Tisak</strong><span>Nadzorna ploča</span></span></a>{{end}}
+
+{{define "open"}}{{template "head" .}}
+<body hx-boost="true" hx-headers='{"X-CSRF-Token": "{{.CSRF}}"}'>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Izbornik">
+    <div class="sidebar-header">
+      {{template "brand" .}}
+      <button type="button" class="btn btn--ghost btn--icon sidebar-close" data-nav-close aria-label="Zatvori izbornik">{{template "icon" "x"}}</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <a class="nav-item{{if eq .Nav "danas"}} active{{end}}" href="/admin/"{{if eq .Nav "danas"}} aria-current="page"{{end}}>{{template "icon" "layout-dashboard"}}<span>Danas</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Sadržaj</div>
+        <a class="nav-item{{if eq .Nav "kategorije"}} active{{end}}" href="/admin/kategorije"{{if eq .Nav "kategorije"}} aria-current="page"{{end}}>{{template "icon" "layers"}}<span>Kategorije</span></a>
+        <a class="nav-item{{if eq .Nav "izvori"}} active{{end}}" href="/admin/izvori"{{if eq .Nav "izvori"}} aria-current="page"{{end}}>{{template "icon" "rss"}}<span>Izvori</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="btn btn--block" href="/" hx-boost="false" target="_blank" rel="noopener">{{template "icon" "external-link"}}<span>Otvori stranicu</span></a>
+      <div class="sidebar-prefs">
+        <button type="button" class="btn btn--ghost btn--icon" data-theme-toggle aria-label="Svijetla ili tamna ploča" title="Svijetla ili tamna ploča">
+          <span class="theme-dark">{{template "icon" "moon"}}</span><span class="theme-light">{{template "icon" "sun"}}</span>
+        </button>
+        <a class="btn btn--ghost btn--icon{{if eq .Nav "racun"}} active{{end}}" href="/admin/racun" aria-label="Račun" title="Račun">{{template "icon" "user"}}</a>
+        <form method="post" action="/admin/odjava">
+          <input type="hidden" name="csrf" value="{{.CSRF}}">
+          <button class="btn btn--ghost btn--icon" aria-label="Odjava ({{.Who.Admin.Username}})" title="Odjava ({{.Who.Admin.Username}})">{{template "icon" "log-out"}}</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" data-nav-close></div>
+  <div class="main-col">
+    <header class="topbar">
+      <button type="button" class="btn btn--ghost btn--icon" data-nav-open aria-label="Otvori izbornik" aria-controls="sidebar">{{template "icon" "menu"}}</button>
+      {{template "brand" .}}
+      <a class="btn btn--small" href="/" hx-boost="false" target="_blank" rel="noopener">{{template "icon" "external-link"}}<span>Stranica</span></a>
+    </header>
+    <main id="main">
+      <p id="greska" class="flash flash--bad" role="alert" hidden></p>
+      {{template "flash" .}}
+{{end}}
+
+{{define "close"}}
+    </main>
+  </div>
+</div>
+</body>
+</html>
+{{end}}
+
+{{define "flash"}}{{with .Flash}}<p class="flash flash--{{.Kind}}" role="status">{{if eq .Kind "ok"}}{{template "icon" "circle-check"}}{{else if eq .Kind "warn"}}{{template "icon" "triangle-alert"}}{{else}}{{template "icon" "circle-alert"}}{{end}}<span>{{.Text}}</span>{{with .Link}}<a href="{{.}}" hx-boost="false" target="_blank" rel="noopener">Otvori izdanje ↗</a>{{end}}</p>{{end}}{{end}}
+
+{{define "csrf"}}<input type="hidden" name="csrf" value="{{.}}">{{end}}
+
+{{/* err shows what is wrong with one field: {{template "err" (index .Form.Errors "title")}} */}}
+{{define "err"}}{{with .}}<span class="field-err">{{.}}</span>{{end}}{{end}}

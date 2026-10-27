@@ -1,0 +1,25 @@
+{{define "page"}}{{template "head" .}}
+<body>
+  <main class="signin">
+    <section class="box">
+      {{template "brand" .}}
+      {{template "flash" .}}
+      {{if .NoAdmin}}
+      <p class="flash flash--warn">Još nema administratora. Postavi ga na poslužitelju naredbom <code>tisak -admin ime</code>, pa se prijavi.</p>
+      {{end}}
+      {{with .Problem}}<p class="flash flash--bad" role="alert">{{.}}</p>{{end}}
+      <form method="post" action="/admin/prijava" class="form">
+        <input type="hidden" name="dalje" value="{{.Next}}">
+        <label>Ime
+          <input type="text" name="username" value="{{.Username}}" autocomplete="username" autocapitalize="none" required autofocus>
+        </label>
+        <label>Lozinka
+          <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <div><button class="btn btn--main">Prijava</button></div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
+{{end}}
