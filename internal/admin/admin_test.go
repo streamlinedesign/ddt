@@ -101,7 +101,7 @@ func testAdmin(t *testing.T) (*Admin, http.Handler) {
 	pr := &press.Press{Store: db, Media: pics, Web: web.FS(""), Out: dir + "/editions", Site: "/", Loc: loc}
 	runner := &fetch.Runner{Store: db, Client: client, Pictures: pics}
 	a := &Admin{Store: db, Auth: &auth.Manager{Store: db}, Jobs: &jobs.Jobs{Runner: runner, Press: pr}, Press: pr,
-		Media: pics, Client: client, Web: pr.Web, Loc: loc, Log: log.New(io.Discard, "", 0), FetchAt: "04:30", PrintAt: "05:00"}
+		Media: pics, Client: client, Web: pr.Web, Loc: loc, Log: log.New(io.Discard, "", 0), FetchAt: "05:15", PrintAt: "05:45"}
 	return a, a.Handler()
 }
 

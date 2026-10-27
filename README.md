@@ -1,7 +1,7 @@
 # Digitalni Dnevni Tisak
 
-A daily digital newspaper. One Go binary with Postgres fetches the sources at 04:30, prints the
-day's edition at 05:00 (Zagreb time), and serves the site and a small dashboard. Every edition is a
+A daily digital newspaper. One Go binary with Postgres fetches the sources at 05:15, prints the
+day's edition at 05:45 (Zagreb time), and serves the site and a small dashboard. Every edition is a
 folder whose `index.html` stands on its own: styles, fonts and scripts inlined, pictures beside it.
 
 ## Run it

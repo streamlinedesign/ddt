@@ -340,8 +340,8 @@ func (s *Store) SaveAPOD(ctx context.Context, a APOD) error {
 	return err
 }
 
-// LatestAPOD is the newest picture on or before a day: NASA posts after the morning fetch,
-// so the morning edition carries the day before's.
+// LatestAPOD is the newest picture on or before a day: NASA posts at 05:05, just before the fetch,
+// so a day NASA is late carries the day before's.
 func (s *Store) LatestAPOD(ctx context.Context, day time.Time) (APOD, error) {
 	var a APOD
 	err := s.db.QueryRow(ctx, `SELECT day, title, explanation, credit, link, media_type, picture_url, coalesce(picture, ''), alt

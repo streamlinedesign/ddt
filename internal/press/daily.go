@@ -38,7 +38,7 @@ type WordPanel struct {
 	Description string `json:"description,omitempty"`
 }
 
-// SkyPanel is NASA's Astronomy Picture of the Day: the day before's in the morning edition.
+// SkyPanel is NASA's Astronomy Picture of the Day, posted at 05:05 Zagreb time, before the fetch.
 type SkyPanel struct {
 	Day     string `json:"day"`
 	Title   string `json:"title"`

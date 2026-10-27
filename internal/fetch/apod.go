@@ -16,7 +16,7 @@ import (
 func init() { RegisterKeeper("apod", APOD{}) }
 
 // APOD reads NASA's Astronomy Picture of the Day from its keyless feed and keeps the last few days,
-// so the morning edition has yesterday's picture before today's is posted (at five past five, Zagreb time).
+// so an edition still has a picture when today's is late. NASA posts at 05:05 Zagreb time; the fetch is at 05:15.
 // Settings: url (defaults to the feed).
 type APOD struct{}
 

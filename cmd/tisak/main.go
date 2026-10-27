@@ -1,4 +1,4 @@
-// Command tisak fetches at 04:30, prints at 05:00 and serves the site. One binary, one database.
+// Command tisak fetches at 05:15, prints at 05:45 and serves the site. One binary, one database.
 //
 //	tisak -migrate              create or update the tables (and fill in the first categories)
 //	tisak -fetch-now            run every fetcher once
@@ -52,8 +52,8 @@ func main() {
 		dbURL    = flag.String("db", env("DATABASE_URL", "postgres://tisak:tisak@localhost:5432/tisak"), "Postgres connection URL")
 		data     = flag.String("data", env("TISAK_DATA", "data"), "folder for pictures and editions")
 		siteURL  = flag.String("site", env("TISAK_SITE", "/"), "the site's root, used in links from editions back to the archive")
-		fetchAt  = flag.String("fetch-at", "04:30", "daily fetch time, Zagreb time")
-		printAt  = flag.String("print-at", "05:00", "daily print time, Zagreb time")
+		fetchAt  = flag.String("fetch-at", "05:15", "daily fetch time, Zagreb time")
+		printAt  = flag.String("print-at", "05:45", "daily print time, Zagreb time")
 		proxy    = flag.Bool("trust-proxy", env("TISAK_TRUST_PROXY", "") != "", "behind a proxy: read the client's address and https from X-Forwarded-*")
 	)
 	flag.Parse()
