@@ -1,0 +1,100 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Večera</h1>
+    <p>Predjelo, glavno jelo, desert i koktel. Večera izlazi od svog dana do sljedeće, najviše tjedan dana; bez nje izdanje ide bez Večere.</p>
+  </div>
+</div>
+
+<div class="two two--wide">
+  <section class="box">
+    <h2>Nova večera</h2>
+    <form method="post" action="/admin/vecera" class="form form--wide">
+      {{template "csrf" .CSRF}}
+      {{template "dinner-fields" .Form}}
+      <div><button class="btn btn--main">{{template "icon" "plus"}}Spremi večeru</button></div>
+    </form>
+  </section>
+
+  <section class="box">
+    <h2>Na redu</h2>
+    {{if .Coming}}{{template "dinner-list" .Coming}}
+    {{else}}<p class="muted">Nema večere za danas ni dalje: upiši prvu.</p>{{end}}
+    {{if .Past}}
+    <h2>Prošle</h2>
+    {{template "dinner-list" .Past}}
+    {{end}}
+  </section>
+</div>
+{{template "close" .}}{{end}}
+
+{{define "dinner-list"}}
+    <div class="tbl"><table>
+      <thead><tr><th>Od</th><th>Jela</th><th></th></tr></thead>
+      <tbody>
+      {{range .}}
+        <tr>
+          <td class="nowrap">{{sday .Day}}{{if .Now}} <span class="tag tag--ok">danas</span>{{end}}</td>
+          <td><a href="/admin/vecera/{{.ID}}">{{.Titles}}</a></td>
+          <td class="num"><a class="btn btn--small" href="/admin/vecera/{{.ID}}">Uredi</a></td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+{{end}}
+
+{{define "dinner-fields"}}
+      <label>Od dana
+        <input type="date" name="day" value="{{if not .Day.IsZero}}{{date .Day}}{{end}}" required>
+        {{template "err" (index .Errors "day")}}
+      </label>
+      {{- $errs := .Errors}}
+      {{range .Courses}}
+      <fieldset class="block">
+        <legend>{{.Label}}</legend>
+        {{template "err" (index $errs .Kind)}}
+        <label>Naslov <small>Prazno: {{if eq .Kind "cocktail"}}bez koktela{{else}}večera ide bez ovog jela{{end}}.</small>
+          <input type="text" name="{{.Kind}}_title" value="{{.Title}}" maxlength="100">
+        </label>
+        <label>Uz naslov <small>Neobavezno: „4 osobe · 25 min”.</small>
+          <input type="text" name="{{.Kind}}_meta" value="{{.Meta}}" maxlength="60">
+        </label>
+        <label>Uvod
+          <textarea name="{{.Kind}}_intro" rows="2" maxlength="600">{{.Intro}}</textarea>
+        </label>
+        <div class="fields-2">
+          <label>Sastojci <small>Jedan u retku.</small>
+            <textarea name="{{.Kind}}_ingredients" rows="6">{{.Ingredients}}</textarea>
+          </label>
+          <label>Priprema <small>Jedan korak u retku.</small>
+            <textarea name="{{.Kind}}_method" rows="6">{{.Method}}</textarea>
+          </label>
+        </div>
+      </fieldset>
+      {{end}}
+{{end}}
+
+{{define "edit"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <a class="back" href="/admin/vecera">{{template "icon" "arrow-left"}}Večera</a>
+    <h1>{{.Title}}</h1>
+  </div>
+</div>
+<div class="two two--wide">
+  <section class="box">
+    <form method="post" action="/admin/vecera/{{.Form.ID}}" class="form form--wide">
+      {{template "csrf" .CSRF}}
+      {{template "dinner-fields" .Form}}
+      <div><button class="btn btn--main">Spremi</button></div>
+    </form>
+  </section>
+  <section class="box danger">
+    <h2>Brisanje</h2>
+    <form method="post" action="/admin/vecera/{{.Form.ID}}/obrisi" hx-confirm="Obrisati ovu večeru?">
+      {{template "csrf" .CSRF}}
+      <button class="btn btn--bad">{{template "icon" "trash"}}Obriši večeru</button>
+    </form>
+  </section>
+</div>
+{{template "close" .}}{{end}}

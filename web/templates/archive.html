@@ -38,3 +38,35 @@
 </body>
 </html>
 {{end}}
+
+{{/* A short note from the site: what happened to a message sent through Kontakt */}}
+{{define "note"}}<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>{{.Title}} · Digitalni Dnevni Tisak</title>
+  <script>{{.Assets.EarlyJS}}</script>
+  <style>{{.Assets.CSS}}</style>
+</head>
+<body>
+  <div class="page">
+    <main class="content">
+      <header class="masthead">
+        <div class="masthead-meta">
+          <span class="masthead-date">Kontakt</span>
+          <span class="masthead-vol"></span>
+          <a class="masthead-vol" href="{{.Site}}">Današnji tisak</a>
+        </div>
+        <h1 class="masthead-title">{{.Title}}</h1>
+      </header>
+      <p class="sve-intro">{{.Text}}</p>
+      <p class="sve-intro"><a href="{{.Site}}">Natrag na današnji tisak</a></p>
+    </main>
+{{template "footer" .}}
+  </div>
+  <script>{{.Assets.PageJS}}</script>
+</body>
+</html>
+{{end}}

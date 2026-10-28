@@ -1,0 +1,89 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Kontakt</h1>
+    <p>Poruke čitatelja iz obrasca na dnu izdanja, i adrese koje izdanje ispisuje uz njega.</p>
+  </div>
+</div>
+
+<div class="two">
+  <section class="box">
+    <div class="box__head">
+      <h2>{{if .Archived}}Arhiva{{else}}Sandučić{{end}}</h2>
+      {{if .Archived}}<a class="btn btn--small" href="/admin/kontakt">{{template "icon" "inbox"}}Sandučić</a>
+      {{else}}<a class="btn btn--small" href="/admin/kontakt?arhiva=1">{{template "icon" "archive"}}Arhiva</a>{{end}}
+    </div>
+    {{if .Messages}}
+    <div class="tbl"><table>
+      <thead><tr><th>Od</th><th>Poruka</th><th>Stigla</th></tr></thead>
+      <tbody>
+      {{range .Messages}}
+        <tr{{if not .Read}} class="unread"{{end}}>
+          <td>{{.Name}}<div class="muted small">{{.Email}}</div></td>
+          <td><a href="/admin/kontakt/{{.ID}}">{{if not .Read}}<span class="tag tag--warn">novo</span> {{end}}{{with .Subject}}<strong>{{.}}</strong>{{else}}<span class="muted">bez naslova</span>{{end}}</a>
+            <div class="muted small clip">{{.Body}}</div></td>
+          <td class="nowrap">{{when .Created}}</td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+    {{else}}<p class="muted">{{if .Archived}}Arhiva je prazna.{{else}}Nema novih poruka.{{end}}</p>{{end}}
+  </section>
+
+  <section class="box">
+    <h2>Adrese u izdanju</h2>
+    <form method="post" action="/admin/kontakt" class="form">
+      {{template "csrf" .CSRF}}
+      <label>Općenito <small>E-pošta za pitanja i ispravke.</small>
+        <input type="email" name="kontakt_email" value="{{index .Form.Values "kontakt_email"}}" maxlength="200" placeholder="urednistvo@primjer.hr">
+        {{template "err" (index .Form.Errors "kontakt_email")}}
+      </label>
+      <label>Za medije <small>Neobavezno.</small>
+        <input type="email" name="kontakt_mediji" value="{{index .Form.Values "kontakt_mediji"}}" maxlength="200">
+        {{template "err" (index .Form.Errors "kontakt_mediji")}}
+      </label>
+      <label>Adresa <small>Neobavezno.</small>
+        <input type="text" name="kontakt_adresa" value="{{index .Form.Values "kontakt_adresa"}}" maxlength="200">
+        {{template "err" (index .Form.Errors "kontakt_adresa")}}
+      </label>
+      <label>Radno vrijeme <small>Neobavezno: „Pon – pet, 9 – 17”.</small>
+        <input type="text" name="kontakt_vrijeme" value="{{index .Form.Values "kontakt_vrijeme"}}" maxlength="200">
+        {{template "err" (index .Form.Errors "kontakt_vrijeme")}}
+      </label>
+      <p class="hint">Prazno polje ne izlazi. Obrazac za poruke izlazi uvijek.</p>
+      <div><button class="btn btn--main">Spremi</button></div>
+    </form>
+  </section>
+</div>
+{{template "close" .}}{{end}}
+
+{{define "message"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <a class="back" href="/admin/kontakt{{if .Message.Archived}}?arhiva=1{{end}}">{{template "icon" "arrow-left"}}Kontakt</a>
+    <h1>{{.Title}}</h1>
+  </div>
+</div>
+<div class="two">
+  <section class="box">
+    <p><strong>{{.Message.Name}}</strong> · <a href="mailto:{{.Message.Email}}{{with .Message.Subject}}?subject=Re: {{.}}{{end}}">{{.Message.Email}}</a></p>
+    <p class="muted small">Stigla {{when .Message.Created}}{{if .Message.Archived}} · u arhivi{{end}}</p>
+    <div class="message-body">{{.Message.Body}}</div>
+    <div class="row">
+      <a class="btn btn--main" href="mailto:{{.Message.Email}}{{with .Message.Subject}}?subject=Re: {{.}}{{end}}">{{template "icon" "mail"}}Odgovori</a>
+      <form method="post" action="/admin/kontakt/{{.Message.ID}}/arhiva">
+        {{template "csrf" .CSRF}}
+        {{if .Message.Archived}}<button class="btn">{{template "icon" "inbox"}}Vrati u sandučić</button>
+        {{else}}<input type="hidden" name="archive" value="1"><button class="btn">{{template "icon" "archive"}}Spremi u arhivu</button>{{end}}
+      </form>
+    </div>
+  </section>
+  <section class="box danger">
+    <h2>Brisanje</h2>
+    <form method="post" action="/admin/kontakt/{{.Message.ID}}/obrisi" hx-confirm="Obrisati poruku od {{.Message.Name}}?">
+      {{template "csrf" .CSRF}}
+      <button class="btn btn--bad">{{template "icon" "trash"}}Obriši poruku</button>
+    </form>
+  </section>
+</div>
+{{template "close" .}}{{end}}

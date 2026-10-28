@@ -16,6 +16,10 @@ type Assets struct {
 	CSS     template.CSS
 	EarlyJS template.JS
 	PageJS  template.JS
+	// Words is Riječililica's guess list and Matter the physics for Izvori, both carried as text
+	// so the edition works opened from disk; the page starts Matter only when Izvori is in view.
+	Words  string
+	Matter template.HTML
 }
 
 var cssURL = regexp.MustCompile(`url\(\s*(['"]?)([^'")]+)['"]?\s*\)`)
@@ -30,10 +34,20 @@ func (p *Press) assets() (Assets, error) {
 	if err != nil {
 		return a, err
 	}
-	page, err := p.join("static/js/page.js", "static/js/images.js", "static/js/wall.js")
+	page, err := p.join("static/js/page.js", "static/js/images.js", "static/js/wall.js", "static/js/game.js", "static/js/izvori.js")
 	if err != nil {
 		return a, err
 	}
+	words, err := fs.ReadFile(p.Web, "static/rijeci.txt")
+	if err != nil {
+		return a, err
+	}
+	matter, err := p.join("static/vendor/matter-0.20.0.min.js")
+	if err != nil {
+		return a, err
+	}
+	a.Words = strings.Join(strings.Fields(string(words)), " ")
+	a.Matter = template.HTML(strings.ReplaceAll(matter, "<!--", `<\!--`))
 	a.CSS = template.CSS(css)
 	a.EarlyJS = template.JS(early)
 	a.PageJS = template.JS(page)

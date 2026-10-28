@@ -50,7 +50,10 @@
   new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting && !window.Matter && !play.dataset.loading) {
       play.dataset.loading = '1';
-      const s = document.createElement('script'); s.src = play.dataset.play; s.onload = start; document.head.append(s);
+      /* the edition carries matter.js as text, so it runs opened from disk; a page without it loads the file */
+      const lib = document.querySelector('script[data-play-lib]'), s = document.createElement('script');
+      if (lib) { s.textContent = lib.textContent; document.head.append(s); start(); }
+      else if (play.dataset.play) { s.src = play.dataset.play; s.onload = start; document.head.append(s); }
     } else if (e.isIntersecting) start();
     if (!runner) return;
     if (e.isIntersecting && !running) { window.Matter.Runner.run(runner, engine); running = true; }

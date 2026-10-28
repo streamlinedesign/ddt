@@ -240,7 +240,7 @@ func (a *App) Serve(ctx context.Context, addr, fetchAt, printAt string) error {
 	}
 	go a.daily(ctx, fh, fm, ph, pm)
 
-	s := &site.Site{Store: a.DB, Press: a.Press, Log: a.Log}
+	s := &site.Site{Store: a.DB, Press: a.Press, Log: a.Log, ClientIP: a.Admin.Auth.ClientIP}
 	mux := http.NewServeMux()
 	mux.Handle("/admin/", a.Admin.Handler())
 	mux.Handle("/", s.Handler())

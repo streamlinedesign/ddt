@@ -19,6 +19,7 @@
 {{- if and $.CultureAfter (eq .Slug $.CultureAfter)}}{{template "culture" $}}{{end}}
 {{- end}}
 {{- if not .CultureAfter}}{{template "culture" .}}{{end}}
+{{template "play" .}}
     </main>
 {{template "footer" .}}
   </div>
