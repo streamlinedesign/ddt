@@ -47,6 +47,11 @@
         <a class="nav-item{{if eq .Nav "filmovi"}} active{{end}}" href="/admin/filmovi"{{if eq .Nav "filmovi"}} aria-current="page"{{end}}>{{template "icon" "film"}}<span>Filmovi</span></a>
         <a class="nav-item{{if eq .Nav "kazalista"}} active{{end}}" href="/admin/kazalista"{{if eq .Nav "kazalista"}} aria-current="page"{{end}}>{{template "icon" "clapperboard"}}<span>Kazališta</span></a>
       </div>
+      <div class="nav-group">
+        <div class="nav-label">Ostalo</div>
+        <a class="nav-item{{if eq .Nav "vecera"}} active{{end}}" href="/admin/vecera"{{if eq .Nav "vecera"}} aria-current="page"{{end}}>{{template "icon" "utensils"}}<span>Večera</span></a>
+        <a class="nav-item{{if eq .Nav "kontakt"}} active{{end}}" href="/admin/kontakt"{{if eq .Nav "kontakt"}} aria-current="page"{{end}}>{{template "icon" "inbox"}}<span>Kontakt</span>{{if .Unread}}<span class="nav-count" title="Nepročitane poruke">{{.Unread}}</span>{{end}}</a>
+      </div>
     </nav>
     <div class="sidebar-footer">
       <a class="btn btn--block" href="/" hx-boost="false" target="_blank" rel="noopener">{{template "icon" "external-link"}}<span>Otvori stranicu</span></a>

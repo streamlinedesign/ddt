@@ -1,0 +1,355 @@
+{{/* Sport's match cards and the end of the edition, cut from design/index.html: Riječililica, Večera,
+     O tisku, Izvori and Kontakt. */}}
+
+{{define "play-menu"}}
+    {{- if .Game}}
+    <li class="menu__item"><a class="menu__link" href="#rijecililica">Riječililica</a></li>
+    {{- end}}{{if .Dinner}}
+    <li class="menu__item"><a class="menu__link" href="#vecera">Večera</a></li>
+    {{- end}}
+    <li class="menu__item"><a class="menu__link" href="#o-tisku">O tisku</a></li>
+    {{- if .Sources}}
+    <li class="menu__item"><a class="menu__link" href="#izvori">Izvori</a></li>
+    {{- end}}{{if .Contact}}
+    <li class="menu__item"><a class="menu__link" href="#kontakt">Kontakt</a></li>
+    {{- end}}
+{{- end}}
+
+{{/* Sport: news around the match cards in the middle column, then two rows of three */}}
+{{define "sport"}}
+{{- $c := .Cards}}{{$m := .Matches}}
+<div class="grid-3 grid-3-2">
+  {{- range take $c 1}}<div class="col">{{template "card" .}}</div>{{end}}
+  {{- with $m.Last}}{{template "match-result" .}}{{else}}{{with $m.Next}}{{template "match-fixture" .}}{{end}}{{end}}
+  {{- range take (skip $c 1) 2}}<div class="col">{{template "card" .}}</div>{{end}}
+  {{- if and $m.Last $m.Next}}{{template "match-fixture" $m.Next}}{{end}}
+  {{- range take (skip $c 3) 1}}<div class="col">{{template "card" .}}</div>{{end}}
+</div>
+{{- with skip $c 4}}
+<div class="grid-3 grid-3-2">
+  {{- range take . 6}}
+  <div class="col">{{template "card" .}}</div>
+  {{- end}}
+</div>
+{{- end}}
+{{end}}
+
+{{define "match-result"}}
+  <div class="col col-match">
+    <div class="match-header">
+      <span class="match-league">{{.League}}</span>
+      <span class="match-date">{{.When}}</span>
+    </div>
+    <div class="teams-score">
+      <div class="team">
+        <div class="team-badge">{{badge .Home}}</div>
+        <div class="team-name">{{.Home}}</div>
+      </div>
+      <div class="score-box">{{.Score}}</div>
+      <div class="team">
+        <div class="team-badge">{{badge .Away}}</div>
+        <div class="team-name">{{.Away}}</div>
+      </div>
+    </div>
+    {{- if .Goals}}
+    <div class="scorers-title">Strijelci</div>
+    <ul class="scorers-list">
+      {{- range .Goals}}
+      <li>{{.}}</li>
+      {{- end}}
+    </ul>
+    {{- end}}
+    <a href="{{.Link}}" class="read-more" target="_blank" rel="noopener">Detalji</a>
+  </div>
+{{- end}}
+
+{{define "match-fixture"}}
+  <div class="col col-match">
+    <div class="match-header">
+      <span class="match-league">{{.League}}</span>
+      <span class="match-status">Sljedeća</span>
+    </div>
+    <div class="teams-fixture">
+      <div class="team">
+        <div class="team-badge">{{badge .Home}}</div>
+        <div class="team-name">{{.Home}}</div>
+      </div>
+      <div class="fixture-datetime">
+        <div class="fixture-date">{{.When}}</div>
+        {{- with .Time}}
+        <div class="fixture-time">{{.}}</div>
+        {{- end}}{{with .Venue}}
+        <div class="fixture-venue">{{.}}</div>
+        {{- end}}
+      </div>
+      <div class="team">
+        <div class="team-badge">{{badge .Away}}</div>
+        <div class="team-name">{{.Away}}</div>
+      </div>
+    </div>
+    {{- if .Form}}
+    <div class="scorers-title">Forma (zadnjih 5)</div>
+    <ul class="scorers-list">
+      {{- range .Form}}
+      <li title="P pobjeda, N neriješeno, I izgubljeno">{{.Team}} · {{.Results}}</li>
+      {{- end}}
+    </ul>
+    {{- end}}
+    <a href="{{.Link}}" class="read-more" target="_blank" rel="noopener">Najava</a>
+  </div>
+{{- end}}
+
+{{define "play"}}
+{{- with .Game}}{{template "game" $}}{{end}}
+{{- with .Dinner}}{{template "dinner" .}}{{end}}
+{{template "about" .}}
+{{- if .Sources}}{{template "sources" .}}{{end}}
+{{- with .Contact}}{{template "contact" .}}{{end}}
+{{- end}}
+
+{{/* Riječililica: the word is drawn at print time and scrambled with the date; the page checks the
+     guesses, so every edition stays playable on its own */}}
+{{define "game"}}
+<header class="section-head">
+  <h2 id="rijecililica">Riječililica</h2>
+  <span class="section-head-label">Br. {{.Game.Number}}</span>
+</header>
+<section class="game-wrap grid-3">
+  <div class="col game-rules">
+    <p class="block-label">Kako se igra</p>
+    <p>Pogodi riječ od pet slova u šest pokušaja. Lj, nj i dž broje se kao dva slova.</p>
+    <ul class="game-legend">
+      <li><span class="tile ok">a</span> slovo je na pravom mjestu</li>
+      <li><span class="tile near">a</span> slovo je u riječi, ali drugdje</li>
+      <li><span class="tile no">a</span> slova nema u riječi</li>
+    </ul>
+  </div>
+  <div class="col game" data-game="{{.Game.Scrambled}}" data-game-day="{{.Game.Day}}" data-game-n="{{.Game.Number}}">
+    <div class="board" tabindex="0" aria-label="Ploča, šest redova po pet slova">
+      <div class="row"><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span></div>
+      <div class="row"><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span></div>
+      <div class="row"><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span></div>
+      <div class="row"><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span></div>
+      <div class="row"><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span></div>
+      <div class="row"><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span><span class="tile"></span></div>
+    </div>
+    <p class="game-msg" role="status" aria-live="polite"></p>
+    <div class="keys" aria-label="Tipkovnica">
+          <div class="krow"><button type="button" class="key" data-k="e">e</button><button type="button" class="key" data-k="r">r</button><button type="button" class="key" data-k="t">t</button><button type="button" class="key" data-k="z">z</button><button type="button" class="key" data-k="u">u</button><button type="button" class="key" data-k="i">i</button><button type="button" class="key" data-k="o">o</button><button type="button" class="key" data-k="p">p</button><button type="button" class="key" data-k="š">š</button><button type="button" class="key" data-k="đ">đ</button></div>
+          <div class="krow"><button type="button" class="key" data-k="a">a</button><button type="button" class="key" data-k="s">s</button><button type="button" class="key" data-k="d">d</button><button type="button" class="key" data-k="f">f</button><button type="button" class="key" data-k="g">g</button><button type="button" class="key" data-k="h">h</button><button type="button" class="key" data-k="j">j</button><button type="button" class="key" data-k="k">k</button><button type="button" class="key" data-k="l">l</button><button type="button" class="key" data-k="č">č</button><button type="button" class="key" data-k="ć">ć</button><button type="button" class="key" data-k="ž">ž</button></div>
+          <div class="krow"><button type="button" class="key wide" data-k="enter">Unesi</button><button type="button" class="key" data-k="c">c</button><button type="button" class="key" data-k="v">v</button><button type="button" class="key" data-k="b">b</button><button type="button" class="key" data-k="n">n</button><button type="button" class="key" data-k="m">m</button><button type="button" class="key wide" data-k="back" aria-label="Obriši">⌫</button></div>
+    </div>
+  </div>
+  <div class="col game-side">
+    <p class="block-label">Tvoj niz</p>
+    <p class="game-stats" data-game-stats>Odigraj današnju riječ.</p>
+    <button type="button" class="game-share contact__submit" data-game-share hidden>Podijeli rezultat</button>
+    <noscript><p>Za igru je potreban JavaScript.</p></noscript>
+    <script type="text/plain" data-game-words>{{.Assets.Words}}</script>
+  </div>
+</section>
+{{- end}}
+
+{{define "recipe"}}
+      <div class="course-head">
+        <span class="course-label">{{course .Kind}}</span>
+        {{- with .Meta}}
+        <span class="course-meta">{{.}}</span>
+        {{- end}}
+      </div>
+      <div class="col-article-body">
+        <h6>{{.Title}}</h6>
+        {{- with .Intro}}
+        <p>{{.}}</p>
+        {{- end}}
+      </div>
+{{- end}}
+
+{{define "ingredients"}}{{if .}}
+      <div class="block-label">Sastojci</div>
+      <ul class="recipe-ingredients">
+        {{- range .}}
+        <li>{{.}}</li>
+        {{- end}}
+      </ul>
+{{- end}}{{end}}
+
+{{define "method"}}{{if .}}
+      <div class="block-label">Priprema</div>
+      <ol class="recipe-method">
+        {{- range .}}
+        <li>{{.}}</li>
+        {{- end}}
+      </ol>
+{{- end}}{{end}}
+
+{{/* Večera: three courses, then the cocktail across the page */}}
+{{define "dinner"}}
+<h2 id="vecera">Večera</h2>
+{{- if .Courses}}
+<section class="dinner">
+  <div class="grid-3 grid-courses">
+    {{- range .Courses}}
+    <div class="col">
+      {{- template "recipe" .}}
+      {{- template "ingredients" .Ingredients}}
+      {{- template "method" .Method}}
+    </div>
+    {{- end}}
+  </div>
+</section>
+{{- end}}
+{{- with .Cocktail}}
+<section class="cocktail">
+  <div class="grid-3 grid-cocktail">
+    <div class="col col-cocktail">
+      <div class="course-head">
+        <span class="course-label">Koktel</span>
+        {{- with .Meta}}
+        <span class="course-meta">{{.}}</span>
+        {{- end}}
+      </div>
+      <div class="cocktail-body">
+        <div class="cocktail-intro">
+          <h6>{{.Title}}</h6>
+          {{- with .Intro}}
+          <p>{{.}}</p>
+          {{- end}}
+        </div>
+        <div class="cocktail-cols">
+          {{- if .Ingredients}}
+          <div class="cocktail-block">{{template "ingredients" .Ingredients}}
+          </div>
+          {{- end}}{{if .Method}}
+          <div class="cocktail-block">{{template "method" .Method}}
+          </div>
+          {{- end}}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end}}
+{{- end}}
+
+{{/* O tisku: what the paper is, in four short notes */}}
+{{define "about"}}
+<h2 id="o-tisku">O tisku</h2>
+<section class="about-press">
+  <div class="grid-2 grid-about">
+    <div class="col">
+      <div class="course-head">
+        <span class="course-label">Izlazi</span>
+        <span class="course-meta">Svako jutro</span>
+      </div>
+      <div class="col-article-body">
+        <h6>Jedno izdanje na dan</h6>
+        <p>Digitalni Dnevni Tisak izlazi jednom dnevno, rano ujutro. Izdanje se ne mijenja: ispravak izlazi kao nova verzija istog broja, a staro ostaje kakvo je bilo.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="course-head">
+        <span class="course-label">Izvori</span>
+        <span class="course-meta">Naslovi i sažeci</span>
+      </div>
+      <div class="col-article-body">
+        <h6>Vijesti vode do izvora</h6>
+        <p>Naslove i sažetke Tisak uzima iz javnih izvora, popisanih pod Izvorima. Svaka vijest vodi na izvorni članak; cijele tekstove čitate kod njihovih autora.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="course-head">
+        <span class="course-label">Arhiva</span>
+        <span class="course-meta">Br. {{.Number}} · Verzija {{.Version}}</span>
+      </div>
+      <div class="col-article-body">
+        <h6>Svako izdanje stoji samo za sebe</h6>
+        <p>Izdanje je jedna stranica sa svim slikama uz nju. Spremite je i otvorite bez interneta; sva dosadašnja izdanja čekaju u <a href="{{.Site}}arhiva/">Arhivi</a>.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="course-head">
+        <span class="course-label">Čitanje</span>
+        <span class="course-meta">Postavke</span>
+      </div>
+      <div class="col-article-body">
+        <h6>Kako vama odgovara</h6>
+        <p>Pismo, svijetlu ili tamnu temu i grad za prognozu birate u postavkama na dnu stranice. Ovaj ih preglednik pamti za sljedeće izdanje.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{{- end}}
+
+{{/* Izvori: every source as a little object to throw about; without JavaScript they sit in rows */}}
+{{define "sources"}}
+<header class="section-head">
+  <h2 id="izvori">Izvori</h2>
+  <button type="button" class="play-shake contact__submit" data-play-shake hidden>Protresi</button>
+</header>
+<section class="play-wrap">
+  <div class="play" data-play>
+    {{- range .Sources}}
+    {{- if .Logo}}
+    <span class="chip chip-logo" title="{{.Name}}"><img src="{{pic .Logo}}" alt="{{.Name}}" draggable="false"></span>
+    {{- else}}
+    <span class="chip" title="{{.Name}}">{{.Name}}</span>
+    {{- end}}
+    {{- end}}
+  </div>
+  <p class="play-hint">Uhvati izvor i baci ga. Ono što izleti s jedne strane, vraća se s druge.</p>
+  <script type="text/plain" data-play-lib>{{.Assets.Matter}}</script>
+</section>
+{{- end}}
+
+{{/* Kontakt: the addresses, and a form that posts to the site */}}
+{{define "contact"}}
+<section class="contact" id="kontakt" aria-labelledby="contact-title">
+  <div class="contact__head">
+    <h2 id="contact-title">Kontakt</h2>
+    <span class="contact__meta">Poruke stižu u uredništvo</span>
+  </div>
+
+  <div class="contact__body">
+    {{- if .Channels}}
+    <div class="contact__channels">
+      {{- range .Channels}}
+      <div class="contact__channel">
+        <p class="contact__channel-label">{{.Label}}</p>
+        <p class="contact__channel-value">{{if .Link}}<a href="{{.Link}}">{{.Value}}</a>{{else}}{{.Value}}{{end}}</p>
+        {{- with .Note}}
+        <p class="contact__channel-note">{{.}}</p>
+        {{- end}}
+      </div>
+      {{- end}}
+    </div>
+    {{- end}}
+
+    <form class="contact__form" action="{{.Action}}" method="post">
+      <div class="contact__field">
+        <label class="contact__label" for="contact-name">Ime</label>
+        <input class="contact__input" id="contact-name" name="name" type="text" autocomplete="name" maxlength="100" required>
+      </div>
+      <div class="contact__field">
+        <label class="contact__label" for="contact-email">E-pošta</label>
+        <input class="contact__input" id="contact-email" name="email" type="email" autocomplete="email" maxlength="200" required>
+      </div>
+      <div class="contact__field contact__field--full">
+        <label class="contact__label" for="contact-subject">Naslov</label>
+        <input class="contact__input" id="contact-subject" name="subject" type="text" maxlength="200">
+      </div>
+      <div class="contact__field contact__field--full">
+        <label class="contact__label" for="contact-message">Poruka</label>
+        <textarea class="contact__textarea" id="contact-message" name="message" rows="5" maxlength="5000" required></textarea>
+      </div>
+      <div class="contact__trap" aria-hidden="true">
+        <label>Ostavite prazno <input name="website" type="text" tabindex="-1" autocomplete="off"></label>
+      </div>
+      <div class="contact__actions">
+        <p>Čitamo svaku poruku. Za hitne ispravke u naslov upišite „Ispravak”.</p>
+        <button class="contact__submit" type="submit">Pošalji</button>
+      </div>
+    </form>
+  </div>
+</section>
+{{- end}}

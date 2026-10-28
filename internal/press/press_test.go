@@ -178,3 +178,71 @@ func TestWhen(t *testing.T) {
 		t.Error("initials")
 	}
 }
+
+// Sport prints its match cards even without news, and the edition ends with the game, the dinner,
+// O tisku, Izvori and Kontakt, in the design's order; all the data here is made up.
+func TestRenderPlay(t *testing.T) {
+	p := &Press{Web: web.FS(""), Site: "/", Loc: time.UTC}
+	snap := Snapshot{Day: "2026-10-28", DayLong: "Srijeda, 28. listopada 2026.", Year: 2026, Number: 3, Version: 1,
+		Sections: []Section{
+			{Slug: "vijesti", Title: "Vijesti", Layout: "row3", InMenu: true, Cards: []Card{card("V1", "v1")}},
+			{Slug: "sport", Title: "Sport", Layout: "sport", InMenu: true, Matches: &MatchPanel{
+				Last: &MatchCard{League: "Kvalifikacije", When: "23. 10. 2026.", Home: "Hrvatska", Away: "Farski Otoci", Score: "2 – 1",
+					Goals: []string{"Perišić 17'"}, Link: "https://www.thesportsdb.com/event/1"},
+				Next: &MatchCard{League: "Liga nacija", When: "Čet 12.11.", Time: "20:45", Home: "Crna Gora", Away: "Hrvatska",
+					Form: []FormRow{{Team: "Hrvatska", Results: "P N P"}}, Link: "https://www.thesportsdb.com/event/2"}}},
+		},
+		Game: &GamePanel{Day: "2026-10-28", Number: 7, Scrambled: "DsifXe4="},
+		Dinner: &DinnerPanel{Courses: []store.Course{{Kind: "starter", Title: "Juha", Ingredients: []string{"bundeva"}, Method: []string{"Skuhaj."}}},
+			Cocktail: &store.Course{Kind: "cocktail", Title: "Negroni", Ingredients: []string{"gin"}}},
+		Sources: []SourceChip{{Name: "HRT", Logo: &Pic{Hash: "dd44", Ext: "svg"}}, {Name: "Glazba.hr"}},
+		Contact: &ContactPanel{Channels: []Channel{{Label: "Općenito", Value: "u@primjer.hr", Link: "mailto:u@primjer.hr"}}, Action: "/kontakt"},
+	}
+	html, err := p.Render("edition", snap)
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(html)
+	for _, want := range []string{
+		`<div class="score-box">2 – 1</div>`, `<li>Perišić 17&#39;</li>`, `<div class="fixture-time">20:45</div>`, `Hrvatska · P N P`,
+		`data-game="DsifXe4=" data-game-day="2026-10-28" data-game-n="7"`, `<span class="section-head-label">Br. 7</span>`,
+		`<span class="course-label">Predjelo</span>`, `<h6>Negroni</h6>`, `<li>Skuhaj.</li>`, `Br. 3 · Verzija 1`,
+		`<img src="images/dd44.svg" alt="HRT" draggable="false">`, `<span class="chip" title="Glazba.hr">Glazba.hr</span>`,
+		`<a href="mailto:u@primjer.hr">u@primjer.hr</a>`, `<form class="contact__form" action="/kontakt" method="post">`,
+		` data-play-lib>`, `Matter`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("page lacks %s", want)
+		}
+	}
+	if words := regexp.MustCompile(`data-game-words>([^<]*)<`).FindStringSubmatch(page); words == nil || strings.Count(words[1], " ") < 10000 {
+		t.Error("the guess list is not in the page")
+	}
+	order := []string{`id="vijesti"`, `id="sport"`, `class="col col-match"`, `id="rijecililica"`, `id="vecera"`, `id="o-tisku"`, `id="izvori"`, `id="kontakt"`}
+	menu := []string{`href="#vijesti"`, `href="#sport"`, `href="#rijecililica"`, `href="#vecera"`, `href="#o-tisku"`, `href="#izvori"`, `href="#kontakt"`, `href="sve.html"`}
+	for _, list := range [][]string{order, menu} {
+		at := 0
+		for _, s := range list {
+			i := strings.Index(page[at:], s)
+			if i < 0 {
+				t.Errorf("%s is missing or out of order", s)
+				break
+			}
+			at += i
+		}
+	}
+	if m := regexp.MustCompile(`<script[^>]+src=`).FindString(page); m != "" {
+		t.Errorf("page depends on an outside script: %s", m)
+	}
+
+	// a quiet day: no game, dinner, sources or contact, and the menu leaves them out
+	html, err = p.Render("edition", Snapshot{Day: "2026-10-28", Number: 4, Version: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, gone := range []string{`href="#rijecililica"`, `href="#vecera"`, `href="#izvori"`, `href="#kontakt"`, `<script type="text/plain" data-play-lib>`} {
+		if strings.Contains(string(html), gone) {
+			t.Errorf("an empty day prints %s", gone)
+		}
+	}
+}

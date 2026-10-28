@@ -158,7 +158,7 @@ form { margin: 0; }
 .form { display: grid; gap: 16px; max-width: 36rem; }
 label { display: grid; gap: 6px; font-weight: 500; font-size: 14px; }
 label small, .hint { color: var(--muted-foreground); font-weight: 400; font-size: 12px; }
-input[type=text], input[type=url], input[type=password], input[type=number], input[type=date], select, textarea {
+input[type=text], input[type=email], input[type=url], input[type=password], input[type=number], input[type=date], select, textarea {
   font: inherit; color: inherit; background: var(--input-bg); border: 1px solid var(--input);
   border-radius: calc(var(--radius) - 2px); height: 36px; padding: 0 12px; width: 100%; min-width: 0;
   box-shadow: var(--shadow-sm);
@@ -293,3 +293,11 @@ fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
 .cover--poster { width: 40px; height: 60px; }
 .cover--poster.cover--big { width: 120px; height: 180px; }
 tr.tbl-group th { padding-top: 18px; text-align: left; font-size: 13px; font-weight: 600; color: var(--foreground); border-bottom: 1px solid var(--border); }
+/* Večera and Kontakt */
+.two--wide { grid-template-columns: minmax(0, 3fr) minmax(min(100%, 320px), 2fr); }
+@media (max-width: 1000px) { .two--wide { grid-template-columns: minmax(0, 1fr); } }
+.fields-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .fields-2 { grid-template-columns: minmax(0, 1fr); } }
+.nav-count { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; font-size: 11px; font-weight: 600; line-height: 20px; text-align: center; background: var(--primary); color: var(--primary-foreground); }
+.clip { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 40rem; }
+.message-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 16px 0; padding: 16px 0; border-block: 1px solid var(--border); }

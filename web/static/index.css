@@ -1868,3 +1868,6 @@ a { color: var(--accent); }
 .theme-type__sample { font-size: 1.35rem; line-height: 1.35; margin: 0 0 1rem; }
 .theme-type__sample--sans { font-family: var(--ff-sans); }
 .theme-type__note { color: var(--fg-muted); font-size: .85rem; }
+
+/* ---------- 42. Kontakt's trap for robots: out of sight, out of the tab order ---------- */
+.contact__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }

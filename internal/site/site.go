@@ -23,6 +23,8 @@ type Site struct {
 	Store *store.Store
 	Press *press.Press
 	Log   *log.Logger
+	// ClientIP is the address a request came from, through the proxy when there is one.
+	ClientIP func(*http.Request) string
 }
 
 func (s *Site) Handler() http.Handler {
@@ -30,6 +32,7 @@ func (s *Site) Handler() http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { fmt.Fprintln(w, "ok") })
 	mux.HandleFunc("GET /arhiva/{$}", s.archive)
 	mux.HandleFunc("GET /sve/{$}", s.sve)
+	mux.HandleFunc("POST /kontakt", s.contact)
 	mux.HandleFunc("GET /{$}", s.today)
 	mux.HandleFunc("GET /index.html", s.today)
 	mux.HandleFunc("GET /sve.html", s.todayFile)

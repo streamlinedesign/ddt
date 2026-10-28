@@ -110,6 +110,18 @@ func (a *Admin) Handler() http.Handler {
 	in.HandleFunc("GET /admin/kazalista", a.theatres)
 	in.HandleFunc("POST /admin/kazalista/{id}/skrij", a.hideShow)
 
+	in.HandleFunc("GET /admin/vecera", a.dinners)
+	in.HandleFunc("POST /admin/vecera", a.newDinner)
+	in.HandleFunc("GET /admin/vecera/{id}", a.dinner)
+	in.HandleFunc("POST /admin/vecera/{id}", a.saveDinner)
+	in.HandleFunc("POST /admin/vecera/{id}/obrisi", a.deleteDinner)
+
+	in.HandleFunc("GET /admin/kontakt", a.contact)
+	in.HandleFunc("POST /admin/kontakt", a.saveContact)
+	in.HandleFunc("GET /admin/kontakt/{id}", a.message)
+	in.HandleFunc("POST /admin/kontakt/{id}/arhiva", a.archiveMessage)
+	in.HandleFunc("POST /admin/kontakt/{id}/obrisi", a.deleteMessage)
+
 	in.HandleFunc("GET /admin/racun", a.account)
 	in.HandleFunc("POST /admin/racun", a.saveAccount)
 	in.HandleFunc("POST /admin/racun/odjavi-ostale", a.signOutOthers)
@@ -142,17 +154,19 @@ func secure(h http.Handler) http.Handler {
 
 // view is what every page gets.
 type view struct {
-	Title string
-	Nav   string // which menu entry is lit
-	Who   auth.Who
-	Flash *flash
+	Title  string
+	Nav    string // which menu entry is lit
+	Who    auth.Who
+	Flash  *flash
+	Unread int // Kontakt's unread messages, beside its menu entry
 }
 
 func (v view) CSRF() string { return v.Who.Session.CSRF }
 
 func (a *Admin) base(r *http.Request, w http.ResponseWriter, title, nav string) view {
 	who, _ := auth.From(r.Context())
-	return view{Title: title, Nav: nav, Who: who, Flash: takeFlash(w, r)}
+	unread, _ := a.Store.UnreadMessages(r.Context()) // a count in the menu is not worth failing a page over
+	return view{Title: title, Nav: nav, Who: who, Flash: takeFlash(w, r), Unread: unread}
 }
 
 // render executes one block of a page. The page's file is parsed with the layout each time,

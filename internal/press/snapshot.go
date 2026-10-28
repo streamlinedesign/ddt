@@ -30,6 +30,11 @@ type Snapshot struct {
 	Films        *FilmsPanel    `json:"films,omitempty"`
 	Theatres     *TheatresPanel `json:"theatres,omitempty"`
 	CultureAfter string         `json:"culture_after,omitempty"`
+	// The end of the edition: the game, the dinner, the sources and Kontakt.
+	Game    *GamePanel    `json:"game,omitempty"`
+	Dinner  *DinnerPanel  `json:"dinner,omitempty"`
+	Sources []SourceChip  `json:"sources,omitempty"`
+	Contact *ContactPanel `json:"contact,omitempty"`
 	// Everything is the day's full haul for the Sve iz dana page.
 	Everything []AllCategory `json:"everything"`
 }
@@ -42,7 +47,8 @@ type Section struct {
 	LeadPicture bool        `json:"lead_picture"`
 	InMenu      bool        `json:"in_menu"`
 	Cards       []Card      `json:"cards"`
-	Chart       *ChartPanel `json:"chart,omitempty"` // Glazba's layout only
+	Chart       *ChartPanel `json:"chart,omitempty"`   // Glazba's layout only
+	Matches     *MatchPanel `json:"matches,omitempty"` // Sport's layout only
 }
 
 type Card struct {

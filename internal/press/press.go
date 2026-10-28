@@ -31,7 +31,7 @@ type Press struct {
 }
 
 // capacity is how many cards each layout holds.
-var capacity = map[string]int{"row3": 3, "rows3": 6, "lead2": 3, "lead2row3": 6, "list": 12, "six": 12, "music": 7}
+var capacity = map[string]int{"row3": 3, "rows3": 6, "lead2": 3, "lead2row3": 6, "list": 12, "six": 12, "music": 7, "sport": 10}
 
 // Layout describes a section layout for the dashboard.
 type Layout struct {
@@ -49,6 +49,7 @@ func Layouts() []Layout {
 		{"list", "Popis naslova", capacity["list"]},
 		{"six", "Šest stupaca (Hacker News)", capacity["six"]},
 		{"music", "Četiri uz Billboard top 10 i red od tri (Glazba)", capacity["music"]},
+		{"sport", "Utakmice u sredini, vijesti oko njih (Sport)", capacity["sport"]},
 	}
 }
 
@@ -119,6 +120,13 @@ func (p *Press) Pick(ctx context.Context, now time.Time) (Snapshot, error) {
 	if err != nil {
 		return snap, err
 	}
+	matches, err := p.pickMatches(ctx, day)
+	if err != nil {
+		return snap, fmt.Errorf("matches: %w", err)
+	}
+	if err := p.pickPlay(ctx, &snap, day); err != nil {
+		return snap, err
+	}
 	cats, err := p.Store.Categories(ctx)
 	if err != nil {
 		return snap, err
@@ -137,6 +145,9 @@ func (p *Press) Pick(ctx context.Context, now time.Time) (Snapshot, error) {
 			Flag: p.pic(ctx, c.Flag)}
 		if c.Layout == "music" {
 			sec.Chart = chart
+		}
+		if c.Layout == "sport" {
+			sec.Matches = matches
 		}
 		all := AllCategory{Slug: c.Slug, Title: c.Title}
 		var lists [][]Card
@@ -172,7 +183,7 @@ func (p *Press) Pick(ctx context.Context, now time.Time) (Snapshot, error) {
 				sec.Cards[i].Picture = nil
 			}
 		}
-		if len(sec.Cards) == 0 {
+		if len(sec.Cards) == 0 && sec.Matches == nil {
 			continue // a category with nothing to show stays out of the edition and the menu
 		}
 		snap.Sections = append(snap.Sections, sec)
@@ -314,6 +325,9 @@ func (s Snapshot) pictures() []Pic {
 	for _, e := range s.Events {
 		add(e.Poster)
 	}
+	for _, c := range s.Sources {
+		add(c.Logo)
+	}
 	if s.Films != nil {
 		for _, f := range s.Films.Picks {
 			add(f.Poster)
@@ -413,6 +427,28 @@ type ArchiveEdition struct {
 var monthNames = []string{"siječanj", "veljača", "ožujak", "travanj", "svibanj", "lipanj",
 	"srpanj", "kolovoz", "rujan", "listopad", "studeni", "prosinac"}
 
+// Note is a short page from the site, like the answer to a message sent through Kontakt.
+type Note struct {
+	Assets      Assets
+	Cities      []string
+	Site, Sve   string
+	Year        int
+	Title, Text string
+}
+
+// RenderNote draws a short page with a title and a sentence, in the paper's dress.
+func (p *Press) RenderNote(title, text string) ([]byte, error) {
+	assets, err := p.assets()
+	if err != nil {
+		return nil, err
+	}
+	site := p.Site
+	if site == "" {
+		site = "/"
+	}
+	return p.execute("note", Note{Assets: assets, Site: site, Sve: site + "sve/", Year: p.now().Year(), Title: title, Text: text})
+}
+
 // RenderArchive draws the archive: every edition, newest first, by month. Reprints sit under their day.
 func (p *Press) RenderArchive(eds []store.EditionInfo) ([]byte, error) {
 	assets, err := p.assets()
@@ -448,6 +484,8 @@ func (p *Press) execute(name string, data any) ([]byte, error) {
 		"inline": Inline,
 		"host":   Host,
 		"css":    func(s string) template.CSS { return template.CSS(s) }, // the press's own colours only
+		"course": func(kind string) string { return CourseLabels[kind] },
+		"badge":  Badge,
 		"minmax": func(f store.Forecast) bool { return f.Min != nil && f.Max != nil },
 	}).ParseFS(p.Web, "templates/*.html")
 	if err != nil {

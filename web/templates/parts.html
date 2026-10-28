@@ -18,6 +18,7 @@
     {{- if not .CultureAfter}}{{template "culture-menu" .}}{{end}}
   </ul>
   <ul class="menu__row menu__row--utility">
+{{- template "play-menu" .}}
     <li class="menu__item"><a class="menu__link" href="sve.html">Sve iz dana</a></li>
     <li class="menu__item"><a class="menu__link" href="{{$.Site}}arhiva/">Arhiva</a></li>
   </ul>
@@ -33,6 +34,7 @@
       </header>
 {{- if eq .Layout "six"}}{{template "six" .}}
 {{- else if and (eq .Layout "music") .Chart}}{{template "music" .}}
+{{- else if and (eq .Layout "sport") .Matches}}{{template "sport" .}}
 {{- else if eq .Layout "list"}}{{template "list" .}}
 {{- else if or (eq .Layout "lead2") (eq .Layout "lead2row3")}}{{template "lead" .}}
 {{- else}}{{template "rows" .}}{{end}}
