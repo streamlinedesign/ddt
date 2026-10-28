@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	neturl "net/url"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -61,16 +63,54 @@ func (c *Client) Get(ctx context.Context, url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	return c.do(req, url)
+}
+
+// Post sends a form and returns the answer's body, as Get does.
+func (c *Client) Post(ctx context.Context, url string, form neturl.Values) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(form.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	return c.do(req, url)
+}
+
+// Open starts a download too large to hold, such as a data set of every week since 1958, for reading as it comes.
+func (c *Client) Open(ctx context.Context, url string) (io.ReadCloser, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	long := *c.HTTP
+	long.Timeout = 0 // a big file takes longer than a page; the caller's context sets the limit
+	resp, err := c.send(&long, req, url)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
+}
+
+func (c *Client) send(hc *http.Client, req *http.Request, url string) (*http.Response, error) {
 	req.Header.Set("User-Agent", c.UserAgent)
 	req.Header.Set("Accept", "*/*")
-	resp, err := c.HTTP.Do(req)
+	resp, err := hc.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("%s: HTTP %d", url, resp.StatusCode)
+	}
+	return resp, nil
+}
+
+func (c *Client) do(req *http.Request, url string) ([]byte, error) {
+	resp, err := c.send(c.HTTP, req, url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s: HTTP %d", url, resp.StatusCode)
-	}
 	body, err := io.ReadAll(io.LimitReader(resp.Body, c.MaxBytes+1))
 	if err != nil {
 		return nil, err

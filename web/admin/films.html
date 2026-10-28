@@ -1,0 +1,110 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Filmovi</h1>
+    <p>Preporuke tjedna biraš ti, za kino tjedan od četvrtka do srijede. Najave filmova u hrvatskim kinima dohvat svako jutro uzima s TMDB-a; film koji ne želiš u izdanju možeš skriti.</p>
+  </div>
+</div>
+
+{{if not .HasKey}}
+<p class="flash flash--warn" role="status">{{template "icon" "triangle-alert"}}<span>TMDB ključ nije postavljen. Postavi varijablu okruženja TMDB_API_KEY na poslužitelju i ponovo pokreni Tisak; bez nje nema tražilice ni najava.</span></p>
+{{end}}
+
+<div class="two">
+  <section class="box">
+    <div class="row row--between">
+      <h2>Preporuke tjedna</h2>
+      <div class="row">
+        <a class="btn btn--small btn--ghost btn--icon" href="/admin/filmovi?tjedan={{date .Prev}}" aria-label="Tjedan prije">{{template "icon" "chevron-left"}}</a>
+        <strong class="nowrap">{{.Range}}</strong>{{if eq (date .Week) (date .This)}} <span class="tag tag--ok">ovaj tjedan</span>{{end}}
+        <a class="btn btn--small btn--ghost btn--icon" href="/admin/filmovi?tjedan={{date .Next}}" aria-label="Tjedan poslije">{{template "icon" "chevron-right"}}</a>
+      </div>
+    </div>
+    {{if .Picks}}
+    <div class="tbl"><table>
+      <tbody>
+      {{range .Picks}}
+        <tr>
+          <td>
+            <div class="row">
+              {{with media .Poster}}<img src="{{.}}" alt="" class="cover cover--poster">{{end}}
+              <div><strong>{{.Title}}</strong><div class="muted small">{{if ne .OriginalTitle .Title}}{{.OriginalTitle}} · {{end}}{{with .Genres}}{{.}} · {{end}}{{with .Year}}{{.}}{{end}}</div></div>
+            </div>
+          </td>
+          <td class="num">
+            <form method="post" action="/admin/filmovi/preporuke/makni">
+              {{template "csrf" $.CSRF}}
+              <input type="hidden" name="tjedan" value="{{date $.Week}}">
+              <input type="hidden" name="film" value="{{.TMDBID}}">
+              <button class="btn btn--small btn--ghost">{{template "icon" "x"}}Makni</button>
+            </form>
+          </td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+    {{else}}<p class="muted">Za ovaj tjedan još nema preporuka. Bez njih izdanje prikazuje samo najave.</p>{{end}}
+
+    {{if .HasKey}}
+    <form method="get" action="/admin/filmovi" class="form">
+      <input type="hidden" name="tjedan" value="{{date .Week}}">
+      <label>Dodaj film <small>Traži po naslovu, hrvatskom ili izvornom.</small>
+        <span class="row"><input type="search" name="q" value="{{.Query}}" maxlength="100" placeholder="Naslov filma" required>
+        <button class="btn">{{template "icon" "search"}}Traži</button></span>
+      </label>
+    </form>
+    {{with .SearchErr}}<p class="field-err">{{.}}</p>{{end}}
+    {{if .Found}}
+    <div class="tbl"><table>
+      <tbody>
+      {{range .Found}}
+        <tr>
+          <td><strong>{{.Title}}</strong>{{with .Year}} <span class="muted">({{.}})</span>{{end}}{{if ne .OriginalTitle .Title}}<div class="muted small">{{.OriginalTitle}}</div>{{end}}</td>
+          <td class="num">
+            <form method="post" action="/admin/filmovi/preporuke">
+              {{template "csrf" $.CSRF}}
+              <input type="hidden" name="tjedan" value="{{date $.Week}}">
+              <input type="hidden" name="film" value="{{.ID}}">
+              <button class="btn btn--small">{{template "icon" "plus"}}Dodaj</button>
+            </form>
+          </td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+    {{else if .Query}}{{if not .SearchErr}}<p class="muted">TMDB ne zna film „{{.Query}}”.</p>{{end}}{{end}}
+    {{end}}
+  </section>
+
+  <section class="box">
+    <h2>Uskoro u kinima</h2>
+    {{if .Releases}}
+    <div class="tbl"><table>
+      <thead><tr><th>Dan</th><th>Film</th><th></th></tr></thead>
+      <tbody>
+      {{range .Releases}}
+        <tr{{if .Hidden}} class="off"{{end}}>
+          <td class="nowrap">{{sday .Day}}</td>
+          <td>
+            <div class="row">
+              {{with media .Poster}}<img src="{{.}}" alt="" class="cover cover--poster">{{end}}
+              <div><strong>{{.Title}}</strong>{{if .Hidden}} <span class="tag">skriveno</span>{{end}}<div class="muted small">{{with .Genres}}{{.}}{{end}}</div></div>
+            </div>
+          </td>
+          <td class="num">
+            <form method="post" action="/admin/filmovi/{{.TMDBID}}/skrij">
+              {{template "csrf" $.CSRF}}
+              <input type="hidden" name="tjedan" value="{{date $.Week}}">
+              {{if .Hidden}}<button class="btn btn--small">{{template "icon" "eye"}}Vrati</button>
+              {{else}}<input type="hidden" name="hide" value="1"><button class="btn btn--small btn--ghost">{{template "icon" "eye-off"}}Skrij</button>{{end}}
+            </form>
+          </td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+    {{else}}<p class="muted">Još nema najava. Dohvat ih uzima svako jutro s TMDB-a{{if not .HasKey}} kad je ključ postavljen{{end}}.</p>{{end}}
+    <p class="muted small">Podaci o filmovima: TMDB. Ovaj proizvod koristi TMDB API, ali ga TMDB ne podržava niti certificira.</p>
+  </section>
+</div>
+{{template "close" .}}{{end}}

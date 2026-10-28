@@ -31,7 +31,7 @@ type Press struct {
 }
 
 // capacity is how many cards each layout holds.
-var capacity = map[string]int{"row3": 3, "rows3": 6, "lead2": 3, "lead2row3": 6, "list": 12, "six": 12}
+var capacity = map[string]int{"row3": 3, "rows3": 6, "lead2": 3, "lead2row3": 6, "list": 12, "six": 12, "music": 7}
 
 // Layout describes a section layout for the dashboard.
 type Layout struct {
@@ -48,6 +48,7 @@ func Layouts() []Layout {
 		{"lead2row3", "Velika vijest, dvije uz nju i red od tri", capacity["lead2row3"]},
 		{"list", "Popis naslova", capacity["list"]},
 		{"six", "Šest stupaca (Hacker News)", capacity["six"]},
+		{"music", "Četiri uz Billboard top 10 i red od tri (Glazba)", capacity["music"]},
 	}
 }
 
@@ -110,6 +111,14 @@ func (p *Press) Pick(ctx context.Context, now time.Time) (Snapshot, error) {
 	if err := p.pickDaily(ctx, &snap, now); err != nil {
 		return snap, err
 	}
+	day := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	if err := p.pickCulture(ctx, &snap, day); err != nil {
+		return snap, err
+	}
+	chart, err := p.pickChart(ctx, day)
+	if err != nil {
+		return snap, err
+	}
 	cats, err := p.Store.Categories(ctx)
 	if err != nil {
 		return snap, err
@@ -126,6 +135,9 @@ func (p *Press) Pick(ctx context.Context, now time.Time) (Snapshot, error) {
 		}
 		sec := Section{Slug: c.Slug, Title: c.Title, Layout: c.Layout, LeadPicture: c.LeadPicture, InMenu: c.InMenu,
 			Flag: p.pic(ctx, c.Flag)}
+		if c.Layout == "music" {
+			sec.Chart = chart
+		}
 		all := AllCategory{Slug: c.Slug, Title: c.Title}
 		var lists [][]Card
 		var quota []int
@@ -164,6 +176,9 @@ func (p *Press) Pick(ctx context.Context, now time.Time) (Snapshot, error) {
 			continue // a category with nothing to show stays out of the edition and the menu
 		}
 		snap.Sections = append(snap.Sections, sec)
+		if c.Slug == CultureAfter {
+			snap.CultureAfter = c.Slug
+		}
 		if len(all.Sources) > 0 {
 			snap.Everything = append(snap.Everything, all)
 		}
@@ -296,6 +311,19 @@ func (s Snapshot) pictures() []Pic {
 	if s.Album != nil {
 		add(s.Album.Cover)
 	}
+	for _, e := range s.Events {
+		add(e.Poster)
+	}
+	if s.Films != nil {
+		for _, f := range s.Films.Picks {
+			add(f.Poster)
+		}
+		for _, d := range s.Films.Soon {
+			for _, f := range d.Films {
+				add(f.Poster)
+			}
+		}
+	}
 	for _, sec := range s.Sections {
 		add(sec.Flag)
 		for _, c := range sec.Cards {
@@ -419,6 +447,7 @@ func (p *Press) execute(name string, data any) ([]byte, error) {
 		"plural": Plural,
 		"inline": Inline,
 		"host":   Host,
+		"css":    func(s string) template.CSS { return template.CSS(s) }, // the press's own colours only
 		"minmax": func(f store.Forecast) bool { return f.Min != nil && f.Max != nil },
 	}).ParseFS(p.Web, "templates/*.html")
 	if err != nil {

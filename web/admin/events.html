@@ -1,0 +1,113 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Događanja</h1>
+    <p>Plakati na zidu: izložbe, koncerti, sajmovi. Izdanje prikazuje sve što traje u sljedeća dva tjedna, ono što je već u tijeku prvo.</p>
+  </div>
+</div>
+
+<div class="two">
+  <section class="box">
+    <h2>Novo događanje</h2>
+    <form method="post" action="/admin/dogadanja" enctype="multipart/form-data" class="form">
+      {{template "csrf" .CSRF}}
+      {{template "fields" .Form}}
+      <div><button class="btn btn--main">{{template "icon" "plus"}}Stavi na zid</button></div>
+    </form>
+  </section>
+
+  <section class="box">
+    <h2>Na zidu</h2>
+    {{if .Coming}}{{template "event-list" .Coming}}
+    {{else}}<p class="muted">Zid je prazan: dodaj prvo događanje.</p>{{end}}
+    {{if .Past}}
+    <h2>Prošla</h2>
+    {{template "event-list" .Past}}
+    {{end}}
+  </section>
+</div>
+{{template "close" .}}{{end}}
+
+{{define "event-list"}}
+    <div class="tbl"><table>
+      <thead><tr><th>Kada</th><th>Događanje</th><th></th></tr></thead>
+      <tbody>
+      {{range .}}
+        <tr>
+          <td class="nowrap">{{.When}}{{if .On}} <span class="tag tag--ok">u tijeku</span>{{end}}</td>
+          <td>
+            <div class="row">
+              {{with media .Poster}}<img src="{{.}}" alt="" class="cover cover--poster">{{end}}
+              <div><a href="/admin/dogadanja/{{.ID}}"><strong>{{.Title}}</strong></a>{{with .Venue}}<div class="muted small">{{.}}</div>{{end}}</div>
+            </div>
+          </td>
+          <td class="num"><a class="btn btn--small" href="/admin/dogadanja/{{.ID}}">Uredi</a></td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+{{end}}
+
+{{define "fields"}}
+      <label>Naslov
+        <input type="text" name="title" value="{{.Title}}" maxlength="120" required>
+        {{template "err" (index .Errors "title")}}
+      </label>
+      <label>Mjesto <small>Gdje: dvorana, galerija, klub.</small>
+        <input type="text" name="venue" value="{{.Venue}}" maxlength="80">
+        {{template "err" (index .Errors "venue")}}
+      </label>
+      <div class="fields-3">
+        <label>Prvi dan
+          <input type="date" name="start" value="{{date .Start}}" required>
+          {{template "err" (index .Errors "start")}}
+        </label>
+        <label>Zadnji dan <small>Isti za jedan dan.</small>
+          <input type="date" name="end" value="{{if not .End.IsZero}}{{date .End}}{{end}}">
+          {{template "err" (index .Errors "end")}}
+        </label>
+        <label>Vrijeme
+          <input type="text" name="time" value="{{.Time}}" maxlength="5" placeholder="20:00" inputmode="numeric">
+          {{template "err" (index .Errors "time")}}
+        </label>
+      </div>
+      <label>Cijena <small>Neobavezno: „Besplatno”, „15 €”.</small>
+        <input type="text" name="price" value="{{.Price}}" maxlength="40">
+        {{template "err" (index .Errors "price")}}
+      </label>
+      <label>Poveznica <small>Neobavezno: stranica događanja ili ulaznice.</small>
+        <input type="url" name="link" value="{{.Link}}" placeholder="https://">
+        {{template "err" (index .Errors "link")}}
+      </label>
+      <label>Plakat <small>Uspravna slika, PNG, JPEG ili WebP, do 8 MB. Bez plakata ide obojeni list s naslovom.</small>
+        {{with media .Poster}}<img src="{{.}}" alt="Trenutni plakat" class="cover cover--poster cover--big">{{end}}
+        <input type="file" name="poster" accept="image/png,image/jpeg,image/webp">
+        {{template "err" (index .Errors "poster")}}
+      </label>
+      {{if .Poster}}<label class="check"><input type="checkbox" name="remove_poster" value="1"> Makni plakat</label>{{end}}
+{{end}}
+
+{{define "edit"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <a class="back" href="/admin/dogadanja">{{template "icon" "arrow-left"}}Događanja</a>
+    <h1>{{.Form.Title}}</h1>
+  </div>
+</div>
+<div class="two">
+  <section class="box">
+    <form method="post" action="/admin/dogadanja/{{.Form.ID}}" enctype="multipart/form-data" class="form">
+      {{template "csrf" .CSRF}}
+      {{template "fields" .Form}}
+      <div><button class="btn btn--main">Spremi</button></div>
+    </form>
+  </section>
+  <section class="box danger">
+    <h2>Brisanje</h2>
+    <form method="post" action="/admin/dogadanja/{{.Form.ID}}/obrisi" hx-confirm="Obrisati događanje {{.Form.Title}}?">
+      {{template "csrf" .CSRF}}
+      <button class="btn btn--bad">{{template "icon" "trash"}}Obriši događanje</button>
+    </form>
+  </section>
+</div>
+{{template "close" .}}{{end}}

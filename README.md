@@ -21,7 +21,8 @@ go build -o tisak ./cmd/tisak
 Other commands: `-check` tries every source without saving, `-fetch-now` fetches once,
 `-print-now` prints today's next edition (`-reason "…"` for a reprint). Settings come from flags or
 `DATABASE_URL`, `TISAK_DATA`, `TISAK_ADDR`, `TISAK_SITE`, `TISAK_TRUST_PROXY`. API keys only ever
-come from the environment.
+come from the environment: `TMDB_API_KEY` for the films (without it the films source fails with a
+clear message and the dashboard cannot search for films; nothing else needs it).
 
 ## Tests
 
@@ -37,9 +38,13 @@ The database tests also use `<name>_admin` (here `tisak_test_admin`), and wipe b
 - `cmd/tisak`: the binary, the daily loop, the first categories and sources
 - `internal/store`: Postgres and migrations
 - `internal/fetch`: one fetcher per kind of source; `dhmz` (weather, 8 cities) and `apod` (NASA, no key)
-  fill the side column and keep their own records
+  fill the side column and keep their own records, as do `tmdb` (films coming to Croatian cinemas),
+  `kazaliste` (one source per theatre) and `billboard` (Hot 100 and Billboard 200, top ten)
+- `internal/theatre`: a parser for each of the nine Zagreb theatres' schedule pages
+- `internal/tmdb`: a small TMDB client; the key never appears in errors or logs
 - `internal/media`: pictures, shrunk once and stored by hash
-- `internal/press`: picks the day's main article, side column and cards, and writes the edition
+- `internal/press`: picks the day's main article, side column, cards, events wall, films, theatres and
+  charts, and writes the edition
 - `internal/site`: serves editions and the archive
 - `internal/auth`, `internal/admin`, `internal/jobs`: sign-in, the dashboard, fetch and print one at a time
 - `web/`: the edition's templates and static files, the dashboard's templates

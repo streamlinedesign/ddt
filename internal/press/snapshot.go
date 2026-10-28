@@ -25,18 +25,24 @@ type Snapshot struct {
 	Sky      *SkyPanel        `json:"sky,omitempty"`
 	Album    *AlbumPanel      `json:"album,omitempty"`
 	Sections []Section        `json:"sections"`
+	// The culture pages print after the section CultureAfter names, or after the last one.
+	Events       []EventCard    `json:"events,omitempty"`
+	Films        *FilmsPanel    `json:"films,omitempty"`
+	Theatres     *TheatresPanel `json:"theatres,omitempty"`
+	CultureAfter string         `json:"culture_after,omitempty"`
 	// Everything is the day's full haul for the Sve iz dana page.
 	Everything []AllCategory `json:"everything"`
 }
 
 type Section struct {
-	Slug        string `json:"slug"`
-	Title       string `json:"title"`
-	Layout      string `json:"layout"`
-	Flag        *Pic   `json:"flag,omitempty"`
-	LeadPicture bool   `json:"lead_picture"`
-	InMenu      bool   `json:"in_menu"`
-	Cards       []Card `json:"cards"`
+	Slug        string      `json:"slug"`
+	Title       string      `json:"title"`
+	Layout      string      `json:"layout"`
+	Flag        *Pic        `json:"flag,omitempty"`
+	LeadPicture bool        `json:"lead_picture"`
+	InMenu      bool        `json:"in_menu"`
+	Cards       []Card      `json:"cards"`
+	Chart       *ChartPanel `json:"chart,omitempty"` // Glazba's layout only
 }
 
 type Card struct {

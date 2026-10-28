@@ -287,3 +287,9 @@ fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
 .editor-save { position: sticky; bottom: 0; padding: 12px 0 4px; background: linear-gradient(transparent, var(--card) 35%); }
 .front th { width: 9rem; height: auto; font-size: 13px; }
 .front tbody tr:last-child th { border-bottom: 0; }
+
+/* culture pages */
+.row--between { justify-content: space-between; }
+.cover--poster { width: 40px; height: 60px; }
+.cover--poster.cover--big { width: 120px; height: 180px; }
+tr.tbl-group th { padding-top: 18px; text-align: left; font-size: 13px; font-weight: 600; color: var(--foreground); border-bottom: 1px solid var(--border); }

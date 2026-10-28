@@ -1,0 +1,37 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Kazališta</h1>
+    <p>Predstave koje je jutarnji dohvat našao na rasporedima zagrebačkih kazališta, za sljedeća dva tjedna. Svako kazalište je svoj izvor pod <a href="/admin/izvori">Izvorima</a>. Skrivena predstava ne izlazi u izdanju ni kad je dohvat ponovo nađe.</p>
+  </div>
+</div>
+
+<section class="box">
+  {{if .Days}}
+  <div class="tbl"><table>
+    <thead><tr><th>Vrijeme</th><th>Predstava</th><th>Kazalište</th><th></th></tr></thead>
+    {{range .Days}}
+    <tbody>
+      <tr class="tbl-group"><th colspan="4">{{daylong .Day}}</th></tr>
+      {{range .Shows}}
+      <tr id="s{{.ID}}"{{if .Hidden}} class="off"{{end}}>
+        <td class="nowrap">{{or .Time "—"}}</td>
+        <td>{{if .Link}}<a href="{{.Link}}" hx-boost="false" target="_blank" rel="noopener">{{.Title}}</a>{{else}}{{.Title}}{{end}}{{if .Hidden}} <span class="tag">skriveno</span>{{end}}</td>
+        <td class="nowrap muted">{{.Theatre}}</td>
+        <td class="num">
+          <form method="post" action="/admin/kazalista/{{.ID}}/skrij">
+            {{template "csrf" $.CSRF}}
+            {{if .Hidden}}<button class="btn btn--small">{{template "icon" "eye"}}Vrati</button>
+            {{else}}<input type="hidden" name="hide" value="1"><button class="btn btn--small btn--ghost">{{template "icon" "eye-off"}}Skrij</button>{{end}}
+          </form>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+    {{end}}
+  </table></div>
+  {{else}}
+  <p class="muted">Još nema predstava. Dohvat ih čita svako jutro; pokreni ga ručno na stranici <a href="/admin/">Danas</a> ili kod pojedinog kazališta pod <a href="/admin/izvori">Izvorima</a>.</p>
+  {{end}}
+</section>
+{{template "close" .}}{{end}}

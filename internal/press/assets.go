@@ -30,7 +30,7 @@ func (p *Press) assets() (Assets, error) {
 	if err != nil {
 		return a, err
 	}
-	page, err := p.join("static/js/page.js", "static/js/images.js")
+	page, err := p.join("static/js/page.js", "static/js/images.js", "static/js/wall.js")
 	if err != nil {
 		return a, err
 	}
