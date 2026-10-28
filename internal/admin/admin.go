@@ -24,6 +24,7 @@ import (
 	"tisak/internal/media"
 	"tisak/internal/press"
 	"tisak/internal/store"
+	"tisak/internal/tmdb"
 )
 
 type Admin struct {
@@ -33,7 +34,8 @@ type Admin struct {
 	Press  *press.Press
 	Media  *media.Store
 	Client *fetch.Client
-	Web    fs.FS // admin/ templates and static/ files
+	TMDB   *tmdb.Client // for picking films; its key comes from the environment
+	Web    fs.FS        // admin/ templates and static/ files
 	Loc    *time.Location
 	Log    *log.Logger
 	// FetchAt and PrintAt are the daily times, shown on the Today page.
@@ -93,6 +95,20 @@ func (a *Admin) Handler() http.Handler {
 	in.HandleFunc("GET /admin/albumi/{id}", a.album)
 	in.HandleFunc("POST /admin/albumi/{id}", a.saveAlbum)
 	in.HandleFunc("POST /admin/albumi/{id}/obrisi", a.deleteAlbum)
+
+	in.HandleFunc("GET /admin/dogadanja", a.events)
+	in.HandleFunc("POST /admin/dogadanja", a.newEvent)
+	in.HandleFunc("GET /admin/dogadanja/{id}", a.event)
+	in.HandleFunc("POST /admin/dogadanja/{id}", a.saveEvent)
+	in.HandleFunc("POST /admin/dogadanja/{id}/obrisi", a.deleteEvent)
+
+	in.HandleFunc("GET /admin/filmovi", a.films)
+	in.HandleFunc("POST /admin/filmovi/preporuke", a.addPick)
+	in.HandleFunc("POST /admin/filmovi/preporuke/makni", a.removePick)
+	in.HandleFunc("POST /admin/filmovi/{id}/skrij", a.hideRelease)
+
+	in.HandleFunc("GET /admin/kazalista", a.theatres)
+	in.HandleFunc("POST /admin/kazalista/{id}/skrij", a.hideShow)
 
 	in.HandleFunc("GET /admin/racun", a.account)
 	in.HandleFunc("POST /admin/racun", a.saveAccount)

@@ -16,7 +16,9 @@
 {{template "main" .}}
 {{- range .Sections}}
 {{template "section" .}}
+{{- if and $.CultureAfter (eq .Slug $.CultureAfter)}}{{template "culture" $}}{{end}}
 {{- end}}
+{{- if not .CultureAfter}}{{template "culture" .}}{{end}}
     </main>
 {{template "footer" .}}
   </div>

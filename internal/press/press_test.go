@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"tisak/internal/store"
 	"tisak/web"
 )
 
@@ -97,5 +98,83 @@ func TestRenderStandsAlone(t *testing.T) {
 	}
 	if _, err := p.Render("sve", snap); err != nil {
 		t.Errorf("sve: %v", err)
+	}
+}
+
+// The culture pages print after Kultura, with Billboard beside Glazba's news; all the data here is made up.
+func TestRenderCulture(t *testing.T) {
+	p := &Press{Web: web.FS(""), Site: "/", Loc: time.UTC}
+	poster := &Pic{Hash: "cc33", Ext: "jpg", W: 500, H: 750}
+	snap := Snapshot{Day: "2026-10-28", DayLong: "Srijeda, 28. listopada 2026.", Year: 2026, Number: 2, Version: 1,
+		Sections: []Section{
+			{Slug: "glazba", Title: "Glazba", Layout: "music", InMenu: true, Cards: []Card{card("G1", "g1"), card("G2", "g2"),
+				card("G3", "g3"), card("G4", "g4"), card("G5", "g5")},
+				Chart: &ChartPanel{Week: "31. 10. 2026.", Songs: []ChartRow{{1, "Pjesma", "Netko", "same"}, {2, "Druga", "Netko drugi", "up"}},
+					Albums: []ChartRow{{1, "Album", "Bend", "new"}}}},
+			{Slug: "kultura", Title: "Kultura", Layout: "row3", InMenu: true, Cards: []Card{card("K1", "k1")}},
+			{Slug: "tehnologija", Title: "Tehnologija", Layout: "row3", InMenu: true, Cards: []Card{card("T1", "t1")}},
+		},
+		CultureAfter: "kultura",
+		Events: []EventCard{{Title: "Izložba", Venue: "Galerija", When: "do 4.11.", Price: "5 €", Colors: eventColors[0]},
+			{Title: "Koncert", When: "Pet 30.10. · 20:00", Link: "https://primjer.hr/k", Poster: poster, Colors: eventColors[1]}},
+		Films: &FilmsPanel{Week: "22. 10. – 28. 10.", Picks: []FilmCard{{Title: "Film", Link: "https://www.themoviedb.org/movie/1", Poster: poster}},
+			Soon: []FilmDay{{Day: "Četvrtak", Date: "29 · X · 2026", Films: []FilmCard{{Title: "Bez postera", Link: "https://www.themoviedb.org/movie/2"}}}}},
+		Theatres: &TheatresPanel{Count: 2, ThisWeek: []ShowDay{{Day: "Srijeda", Date: "28 · X · 2026", Count: 1,
+			Shows: []ShowRow{{Title: "Predstava", Theatre: "Teatar EXIT", Initials: "TE", Link: "https://primjer.hr/p", Times: []string{"18:00", "20:00"}}}}}},
+	}
+	html, err := p.Render("edition", snap)
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(html)
+	for _, want := range []string{
+		`<span class="panel-source">31. 10. 2026.</span>`, `<span class="chart__move chart__move--up" aria-label="gore">▲</span>`,
+		`<span class="chart__move chart__move--new">novo</span>`, `style="--bg:#e8442e;--fg:#fff4e0"`, `class="piece piece--poster"`,
+		`<p>do 4.11. · 5 €</p>`, `<span class="movies__blockmeta">22. 10. – 28. 10.</span>`, `<div class="movies__poster"><span>Poster</span></div>`,
+		`Zagreb · 2 kazališta`, `28 · X · 2026 · 1 predstava`, `<li>18:00</li><li>20:00</li>`, `<span>TE</span>`, `src="images/cc33.jpg"`,
+		`Ovaj proizvod koristi TMDB API`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("page lacks %s", want)
+		}
+	}
+	order := []string{`id="glazba"`, `id="kultura"`, `id="dogadanja"`, `id="filmovi"`, `id="kazalista"`, `id="tehnologija"`}
+	menu := []string{`href="#kultura"`, `href="#dogadanja"`, `href="#filmovi"`, `href="#kazalista"`, `href="#tehnologija"`}
+	for _, list := range [][]string{order, menu} {
+		at := 0
+		for _, s := range list {
+			i := strings.Index(page[at:], s)
+			if i < 0 {
+				t.Errorf("%s is missing or out of order", s)
+				break
+			}
+			at += i
+		}
+	}
+	if got := snap.pictures(); len(got) != 1 {
+		t.Errorf("pictures = %v, want the one poster once", got)
+	}
+}
+
+func TestWhen(t *testing.T) {
+	day := time.Date(2026, 10, 28, 0, 0, 0, 0, time.UTC)
+	d := func(n int) time.Time { return day.AddDate(0, 0, n) }
+	for _, c := range []struct {
+		e    store.Event
+		want string
+	}{
+		{store.Event{Start: d(1), End: d(1), Time: "20:00"}, "Čet 29.10. · 20:00"},
+		{store.Event{Start: d(-3), End: d(7)}, "do 4.11."},
+		{store.Event{Start: d(4), End: d(12)}, "1.11. – 9.11."},
+	} {
+		if got := When(c.e, day); got != c.want {
+			t.Errorf("When = %q, want %q", got, c.want)
+		}
+	}
+	if cinemaWeek(day).Weekday() != time.Thursday || !cinemaWeek(d(1)).Equal(d(1)) || !cinemaWeek(day).Equal(d(-6)) {
+		t.Errorf("cinema week of %s is %s", day, cinemaWeek(day))
+	}
+	if initials("Teatar EXIT") != "TE" || initials("Gavella") != "G" || initials("Luda kuća") != "LK" {
+		t.Error("initials")
 	}
 }

@@ -41,6 +41,12 @@
         <a class="nav-item{{if eq .Nav "rijeci"}} active{{end}}" href="/admin/rijeci"{{if eq .Nav "rijeci"}} aria-current="page"{{end}}>{{template "icon" "book-open"}}<span>Riječ dana</span></a>
         <a class="nav-item{{if eq .Nav "albumi"}} active{{end}}" href="/admin/albumi"{{if eq .Nav "albumi"}} aria-current="page"{{end}}>{{template "icon" "disc"}}<span>Album dana</span></a>
       </div>
+      <div class="nav-group">
+        <div class="nav-label">Kultura</div>
+        <a class="nav-item{{if eq .Nav "dogadanja"}} active{{end}}" href="/admin/dogadanja"{{if eq .Nav "dogadanja"}} aria-current="page"{{end}}>{{template "icon" "ticket"}}<span>Događanja</span></a>
+        <a class="nav-item{{if eq .Nav "filmovi"}} active{{end}}" href="/admin/filmovi"{{if eq .Nav "filmovi"}} aria-current="page"{{end}}>{{template "icon" "film"}}<span>Filmovi</span></a>
+        <a class="nav-item{{if eq .Nav "kazalista"}} active{{end}}" href="/admin/kazalista"{{if eq .Nav "kazalista"}} aria-current="page"{{end}}>{{template "icon" "clapperboard"}}<span>Kazališta</span></a>
+      </div>
     </nav>
     <div class="sidebar-footer">
       <a class="btn btn--block" href="/" hx-boost="false" target="_blank" rel="noopener">{{template "icon" "external-link"}}<span>Otvori stranicu</span></a>

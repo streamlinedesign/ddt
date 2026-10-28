@@ -1,6 +1,8 @@
 /* Događanja: posters on a wall. toss, drag, tidy.
    Same as the art table snippet, but posters are taller than wide, so width (w) and height (h) are kept apart. */
-const table=document.querySelector('.table'),pieces=[...table.querySelectorAll('.piece')];
+(() => {
+const table=document.querySelector('.table'),pieces=table?[...table.querySelectorAll('.piece')]:[];
+if(!pieces.length)return;
 let mode='pile',z=pieces.length;
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const scatterH=W=>Math.round(clamp(W*.66,380,720));
@@ -56,3 +58,4 @@ pieces.forEach(p=>p.addEventListener('pointerdown',e=>{
   };
   p.addEventListener('pointermove',move);p.addEventListener('pointerup',up);p.addEventListener('pointercancel',up);
 }));
+})();

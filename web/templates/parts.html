@@ -14,7 +14,8 @@
   <ul class="menu__row">
     {{- range .Sections}}{{if .InMenu}}
     <li class="menu__item"><a class="menu__link" href="#{{.Slug}}">{{.Title}}</a></li>
-    {{- end}}{{end}}
+    {{- end}}{{if and $.CultureAfter (eq .Slug $.CultureAfter)}}{{template "culture-menu" $}}{{end}}{{end}}
+    {{- if not .CultureAfter}}{{template "culture-menu" .}}{{end}}
   </ul>
   <ul class="menu__row menu__row--utility">
     <li class="menu__item"><a class="menu__link" href="sve.html">Sve iz dana</a></li>
@@ -31,6 +32,7 @@
         {{- end}}
       </header>
 {{- if eq .Layout "six"}}{{template "six" .}}
+{{- else if and (eq .Layout "music") .Chart}}{{template "music" .}}
 {{- else if eq .Layout "list"}}{{template "list" .}}
 {{- else if or (eq .Layout "lead2") (eq .Layout "lead2row3")}}{{template "lead" .}}
 {{- else}}{{template "rows" .}}{{end}}

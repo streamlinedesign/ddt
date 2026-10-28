@@ -505,6 +505,19 @@ a { color: var(--accent); }
   font-family: var(--font-ui); font-size: var(--text-2xs); font-weight: 600;
   letter-spacing: .06em; text-transform: uppercase;
 }
+/* a poster with its own picture: the picture fills it, the date stays on a strip */
+.piece--poster { padding: 0; }
+.piece--poster > img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; pointer-events: none;
+}
+.piece--poster > p:first-child, .piece--poster > h3 {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+}
+.piece--poster > p:last-of-type {
+  position: relative; margin: auto 0 0; padding: var(--space-2) var(--space-3);
+  background: var(--bg); color: var(--fg);
+}
 .like {
   position: absolute; right: var(--space-2); bottom: var(--space-2);
   display: grid; place-items: center; width: 2rem; height: 2rem;
@@ -753,6 +766,10 @@ a { color: var(--accent); }
 .releases__day + .releases__day { margin-top: .75rem; }
 
 /* ---------- 24. Poster, title, card grid (shared) ---------- */
+.theaters__none {
+  padding-block: var(--space-4);
+  font-family: var(--font-ui); font-size: var(--text-2xs); color: var(--fg-muted);
+}
 .movies__poster,
 .theaters__poster,
 .releases__poster {

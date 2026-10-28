@@ -36,6 +36,7 @@ import (
 	"tisak/internal/press"
 	"tisak/internal/site"
 	"tisak/internal/store"
+	"tisak/internal/tmdb"
 	"tisak/web"
 )
 
@@ -82,7 +83,7 @@ func main() {
 	runner := &fetch.Runner{Store: db, Client: client, Pictures: pics, PictureWidth: 1000, Loc: loc}
 	app := &App{DB: db, Press: pr, Runner: runner, Jobs: &jobs.Jobs{Runner: runner, Press: pr}, Media: pics, Log: logger}
 	app.Admin = &admin.Admin{Store: db, Auth: &auth.Manager{Store: db, TrustProxy: *proxy}, Jobs: app.Jobs, Press: pr,
-		Media: pics, Client: client, Web: pr.Web, Loc: loc, Log: logger, FetchAt: *fetchAt, PrintAt: *printAt}
+		Media: pics, Client: client, TMDB: tmdb.FromEnv(), Web: pr.Web, Loc: loc, Log: logger, FetchAt: *fetchAt, PrintAt: *printAt}
 
 	switch {
 	case *migrate:

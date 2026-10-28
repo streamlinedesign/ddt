@@ -1,0 +1,213 @@
+{{/* The culture pages, cut from design/index.html: Događanja, Filmovi, Kazališta, and Billboard's top ten in Glazba. */}}
+
+{{define "culture-menu"}}
+    {{- if .Events}}
+    <li class="menu__item"><a class="menu__link" href="#dogadanja">Događanja</a></li>
+    {{- end}}{{if .Films}}
+    <li class="menu__item"><a class="menu__link" href="#filmovi">Filmovi</a></li>
+    {{- end}}{{if .Theatres}}
+    <li class="menu__item"><a class="menu__link" href="#kazalista">Kazališta</a></li>
+    {{- end}}
+{{- end}}
+
+{{define "culture"}}
+{{- if .Events}}{{template "events" .Events}}{{end}}
+{{- with .Films}}{{template "films" .}}{{end}}
+{{- with .Theatres}}{{template "theatres" .}}{{end}}
+{{- end}}
+
+{{/* Glazba: four stories beside Billboard's top ten, then a row of three */}}
+{{define "music"}}
+<div class="grid grid-music">
+  <div class="col-music-news">
+    {{- range take .Cards 4}}
+    <div class="col">{{template "card" .}}</div>
+    {{- end}}
+  </div>
+  {{- with .Chart}}
+  <div class="col-music-aotd chart" data-tabs>
+    <h3 class="panel-title">
+      Billboard top 10
+      <span class="panel-source">{{.Week}}</span>
+    </h3>
+    <div class="chart__tabs" role="tablist">
+      {{- if .Songs}}
+      <button class="chart__tab is-active" data-tab="hot100" role="tab" aria-selected="true">Pjesme</button>
+      {{- end}}{{if .Albums}}
+      <button class="chart__tab{{if not .Songs}} is-active{{end}}" data-tab="b200" role="tab" aria-selected="{{not .Songs}}">Albumi</button>
+      {{- end}}
+    </div>
+    {{- if .Songs}}
+    <ol class="chart__list is-active" data-panel="hot100" role="tabpanel">
+      {{- range .Songs}}{{template "chart-row" .}}{{end}}
+    </ol>
+    {{- end}}{{if .Albums}}
+    <ol class="chart__list{{if not .Songs}} is-active{{end}}" data-panel="b200" role="tabpanel"{{if .Songs}} hidden{{end}}>
+      {{- range .Albums}}{{template "chart-row" .}}{{end}}
+    </ol>
+    {{- end}}
+  </div>
+  {{- end}}
+</div>
+{{- range rows (skip .Cards 4) 3}}
+<div class="grid-3 grid-title">
+  {{- range .}}
+  <div class="col">{{template "card" .}}</div>
+  {{- end}}
+</div>
+{{- end}}
+{{end}}
+
+{{define "chart-row"}}
+      <li class="chart__row"><span class="chart__rank">{{.Rank}}</span><span class="chart__what"><strong>{{.Title}}</strong><span>{{.Artist}}</span></span>
+        {{- if eq .Move "up"}}<span class="chart__move chart__move--up" aria-label="gore">▲</span>
+        {{- else if eq .Move "down"}}<span class="chart__move chart__move--down" aria-label="dolje">▼</span>
+        {{- else if eq .Move "new"}}<span class="chart__move chart__move--new">novo</span>
+        {{- else}}<span class="chart__move">–</span>{{end}}</li>
+{{- end}}
+
+{{/* Događanja: posters on a wall, the ones already on first */}}
+{{define "events"}}
+      <section id="dogadanja" class="events cat">
+        <header class="section-head">
+          <h2>Događanja</h2>
+          <div class="events-actions" role="group" aria-label="Posteri">
+            <button hidden type="button" id="shuffle">Razbacaj</button>
+            <button hidden type="button" id="tidy">Posloži</button>
+          </div>
+        </header>
+
+        <div class="table">
+          {{- range .}}
+          <article class="piece{{if .Poster}} piece--poster{{end}}" style="{{.Colors | css}}">
+            {{- with .Poster}}<img src="{{pic .}}" alt="" draggable="false" loading="lazy"{{if .W}} width="{{.W}}" height="{{.H}}"{{end}}>{{end}}
+            <p>{{.Venue}}</p>
+            <h3>{{if .Link}}<a href="{{.Link}}" target="_blank" rel="noopener">{{.Title}}</a>{{else}}{{.Title}}{{end}}</h3>
+            <p>{{.When}}{{with .Price}} · {{.}}{{end}}</p>
+          </article>
+          {{- end}}
+        </div>
+      </section>
+{{- end}}
+
+{{define "film-poster"}}
+        {{- with .Poster}}<figure class="movies__poster"><img src="{{pic .}}" alt="{{$.Title}}" loading="lazy"></figure>
+        {{- else}}<div class="movies__poster"><span>Poster</span></div>{{end}}
+{{- end}}
+
+{{/* Filmovi: the films of the week, then the ones coming to cinemas by day */}}
+{{define "films"}}
+<section class="movies" id="filmovi">
+
+  <header class="movies__head">
+    <h2>Filmovi</h2>
+  </header>
+  {{- if .Picks}}
+
+  <div class="movies__block">
+    <div class="movies__blockhead">
+      <h3 class="movies__blocktitle">Preporuke tjedna</h3>
+      <span class="movies__blockrule"></span>
+      <span class="movies__blockmeta">{{.Week}}</span>
+    </div>
+    <div class="movies__weekly">
+      {{- range .Picks}}
+      <a href="{{.Link}}" target="_blank" rel="noopener" class="movies__weekly-card"{{with .Meta}} title="{{.}}"{{end}}>
+        {{template "film-poster" .}}
+        <h3 class="movies__name">{{.Title}}</h3>
+      </a>
+      {{- end}}
+    </div>
+  </div>
+  {{- end}}
+
+  <div class="movies__block">
+    {{- if .Soon}}
+    <div class="movies__blockhead">
+      <h3 class="movies__blocktitle">Uskoro u kinima</h3>
+      <span class="movies__blockrule"></span>
+      <span class="movies__blockmeta">TMDB</span>
+    </div>
+    {{- range .Soon}}
+      <div class="movies__day">
+        <div class="movies__dayhead">
+          <h2>{{.Day}}</h2>
+          <span class="movies__dayrule"></span>
+          <span class="movies__daydate">{{.Date}}</span>
+        </div>
+        <div class="movies__grid">
+          {{- range .Films}}
+          <a href="{{.Link}}" target="_blank" rel="noopener" class="movies__card"{{with .Meta}} title="{{.}}"{{end}}>
+            {{template "film-poster" .}}
+            <h3 class="movies__name">{{.Title}}</h3>
+          </a>
+          {{- end}}
+        </div>
+      </div>
+    {{- end}}
+    {{- end}}
+    <p class="movies__credit">Podaci o filmovima: TMDB. Ovaj proizvod koristi TMDB API, ali ga TMDB ne podržava niti certificira.</p>
+  </div>
+</section>
+{{- end}}
+
+{{/* Kazališta: this week and next; each day folds */}}
+{{define "theatres"}}
+<section class="theaters" id="kazalista" data-tabs>
+
+  <header class="theaters__head">
+    <h2 class="theaters__title">Kazališta</h2>
+    <span class="theaters__meta">Zagreb · {{.Count}} {{plural (print .Count) "kazalište" "kazališta" "kazališta"}}</span>
+  </header>
+
+  <div class="theaters__tabs" role="tablist">
+    <button class="theaters__tab is-active" data-tab="ovaj-tjedan" role="tab" aria-selected="true">Ovaj tjedan</button>
+    <button class="theaters__tab" data-tab="sljedeci-tjedan" role="tab" aria-selected="false">Sljedeći tjedan</button>
+  </div>
+
+  <div class="theaters__panel is-active" data-panel="ovaj-tjedan" role="tabpanel">
+    {{- range .ThisWeek}}{{template "theatre-day" .}}{{else}}
+    <p class="theaters__none">Do nedjelje nema predstava na rasporedu.</p>
+    {{- end}}
+  </div>
+  <div class="theaters__panel" data-panel="sljedeci-tjedan" role="tabpanel" hidden>
+    {{- range .NextWeek}}{{template "theatre-day" .}}{{else}}
+    <p class="theaters__none">Raspored za sljedeći tjedan još nije objavljen.</p>
+    {{- end}}
+  </div>
+</section>
+{{- end}}
+
+{{define "theatre-day"}}
+      <details class="theaters__day">
+        <summary class="theaters__dayhead">
+          <h2>{{.Day}}</h2>
+          <span class="theaters__dayrule"></span>
+          <span class="theaters__daydate">{{.Date}} · {{.Count}} {{plural (print .Count) "predstava" "predstave" "predstava"}}</span>
+        </summary>
+        <ul class="theaters__list">
+          {{- range .Shows}}
+          <li class="theaters__item">
+            {{- if .Link}}
+            <a href="{{.Link}}" target="_blank" rel="noopener" class="theaters__link">{{template "theatre-show" .}}</a>
+            {{- else}}
+            <div class="theaters__link">{{template "theatre-show" .}}</div>
+            {{- end}}
+          </li>
+          {{- end}}
+        </ul>
+      </details>
+{{- end}}
+
+{{define "theatre-show"}}
+              <figure class="theaters__poster theaters__poster--type" aria-hidden="true"><span>{{.Initials}}</span></figure>
+              <div class="theaters__info">
+                <h3 class="theaters__name">{{.Title}}</h3>
+                <div class="theaters__foot">
+                  <span class="theaters__venue">{{.Theatre}}</span>
+                  {{- if .Times}}
+                  <ul class="theaters__times">{{range .Times}}<li>{{.}}</li>{{end}}</ul>
+                  {{- end}}
+                </div>
+              </div>
+{{- end}}
