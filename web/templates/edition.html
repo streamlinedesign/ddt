@@ -7,12 +7,13 @@
   <meta name="description" content="Dnevni tisak za {{.DayLong}} Br. {{.Number}}, Verzija {{.Version}}.">
   <meta name="tisak:printed" content="{{.PrintedAt}}{{with .Reason}} · {{.}}{{end}}">
   <script>{{.Assets.EarlyJS}}</script>
-  <style>{{.Assets.CSS}}</style>
+  <style>{{.Assets.CSS}}{{.Icons}}</style>
 </head>
 <body>
   <div class="page">
     <main class="content">
 {{template "masthead" .}}
+{{template "main" .}}
 {{- range .Sections}}
 {{template "section" .}}
 {{- end}}

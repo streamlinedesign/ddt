@@ -66,13 +66,14 @@
         {{template "err" (index .Form.Errors "name")}}
       </label>
       <label>Kategorija
-        <select name="category" required>
+        <select name="category">
           <option value="">Odaberi…</option>
+          <option value="0"{{if and .Form.ID (eq .Form.CategoryID 0)}} selected{{end}}>Bočni stupac (vrijeme, NASA)</option>
           {{range .Categories}}<option value="{{.ID}}"{{if eq .ID $.Form.CategoryID}} selected{{end}}>{{.Title}}</option>{{end}}
         </select>
         {{template "err" (index .Form.Errors "category")}}
       </label>
-      <label>Vrsta <small>rss čita RSS i Atom; hn čita Hacker News.</small>
+      <label>Vrsta <small>rss čita RSS i Atom; hn čita Hacker News; dhmz i apod pune bočni stupac (vrijeme i NASA-inu sliku dana).</small>
         <select name="kind">
           {{range .Kinds}}<option value="{{.}}"{{if eq . $.Form.Kind}} selected{{end}}>{{.}}</option>{{end}}
         </select>

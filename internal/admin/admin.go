@@ -74,6 +74,26 @@ func (a *Admin) Handler() http.Handler {
 	in.HandleFunc("POST /admin/izvori/{id}/dohvati", a.fetchSource)
 	in.HandleFunc("POST /admin/izvori/{id}/obrisi", a.deleteSource)
 
+	in.HandleFunc("GET /admin/clanci", a.articles)
+	in.HandleFunc("POST /admin/clanci", a.newArticle)
+	in.HandleFunc("GET /admin/clanci/{id}", a.article)
+	in.HandleFunc("POST /admin/clanci/{id}", a.saveArticle)
+	in.HandleFunc("POST /admin/clanci/{id}/dan", a.setArticleDay)
+	in.HandleFunc("POST /admin/clanci/{id}/prikvaci", a.pinArticle)
+	in.HandleFunc("POST /admin/clanci/{id}/obrisi", a.deleteArticle)
+
+	in.HandleFunc("GET /admin/rijeci", a.words)
+	in.HandleFunc("POST /admin/rijeci", a.newWord)
+	in.HandleFunc("GET /admin/rijeci/{id}", a.word)
+	in.HandleFunc("POST /admin/rijeci/{id}", a.saveWord)
+	in.HandleFunc("POST /admin/rijeci/{id}/obrisi", a.deleteWord)
+
+	in.HandleFunc("GET /admin/albumi", a.albums)
+	in.HandleFunc("POST /admin/albumi", a.newAlbum)
+	in.HandleFunc("GET /admin/albumi/{id}", a.album)
+	in.HandleFunc("POST /admin/albumi/{id}", a.saveAlbum)
+	in.HandleFunc("POST /admin/albumi/{id}/obrisi", a.deleteAlbum)
+
 	in.HandleFunc("GET /admin/racun", a.account)
 	in.HandleFunc("POST /admin/racun", a.saveAccount)
 	in.HandleFunc("POST /admin/racun/odjavi-ostale", a.signOutOthers)
@@ -94,7 +114,7 @@ func secure(h http.Handler) http.Handler {
 		hd.Set("X-Content-Type-Options", "nosniff")
 		hd.Set("Referrer-Policy", "same-origin")
 		hd.Set("X-Frame-Options", "DENY")
-		r.Body = http.MaxBytesReader(w, r.Body, maxUpload+256<<10) // a logo and the form around it, no more
+		r.Body = http.MaxBytesReader(w, r.Body, maxBody) // a few pictures and the form around them, no more
 		if !strings.HasPrefix(r.URL.Path, "/admin/static/") {
 			hd.Set("Cache-Control", "no-store")
 		}
@@ -169,6 +189,15 @@ func (a *Admin) funcs() template.FuncMap {
 		"isnil":    func(b *bool) bool { return b == nil },
 		"add":      func(a, b int) int { return a + b },
 		"hostname": hostname,
+		"date":     func(t time.Time) string { return t.Format("2006-01-02") },
+		"sday":     shortDay,
+		"deday": func(t *time.Time) time.Time {
+			if t == nil {
+				return time.Time{}
+			}
+			return *t
+		},
+		"plain": press.Plain,
 	}
 }
 

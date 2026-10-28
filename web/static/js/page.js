@@ -39,7 +39,7 @@
 
   /* weather city: remembered per reader; the print carries every city's forecast and shows one */
   const city = document.getElementById('city');
-  if (city) {
+  if (city && document.querySelector('.weather-day')) {
     city.value = read('city', 'Zagreb');
     const show = () => {
       const day = document.querySelector('.weather-day[data-city="' + city.value + '"]') || document.querySelector('.weather-day');

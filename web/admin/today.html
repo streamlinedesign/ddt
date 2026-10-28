@@ -62,6 +62,34 @@
 
 <section class="box">
   <div class="box__head">
+    <h2>Vrh izdanja</h2>
+    <p class="muted small">Glavni članak i stupac uz njega, kako bi izašli sada.</p>
+  </div>
+  {{with .Preview}}
+  <div class="tbl"><table class="front">
+    <tbody>
+      <tr><th>Glavni članak</th>
+        <td>{{with .Lead}}<strong>{{.Title}}</strong>{{else}}<span class="muted">nema: izdanje počinje bočnim stupcem</span>{{end}}</td>
+        <td class="num"><a class="btn btn--small" href="/admin/clanci">Članci</a></td></tr>
+      <tr><th>Vrijeme</th>
+        <td>{{if .Weather}}{{$z := index .Weather 0}}{{$z.City}}{{if $z.Max}} {{$z.Min}}° / {{$z.Max}}°{{end}} <span class="muted small">· {{len .Weather}} {{plural (len .Weather) "grad" "grada" "gradova"}}</span>{{else}}<span class="tag tag--warn">nema</span> <span class="muted small">dohvati DHMZ</span>{{end}}</td>
+        <td class="num"><a class="btn btn--small" href="/admin/izvori">Izvori</a></td></tr>
+      <tr><th>Riječ dana</th>
+        <td>{{with .Word}}<strong>{{.Word}}</strong>{{else}}<span class="tag tag--warn">nema</span>{{end}}</td>
+        <td class="num"><a class="btn btn--small" href="/admin/rijeci">Riječi</a></td></tr>
+      <tr><th>Slika dana</th>
+        <td>{{with .Sky}}{{.Title}} <span class="muted small">· NASA, {{.Day}}</span>{{else}}<span class="tag tag--warn">nema</span>{{end}}</td>
+        <td class="num"></td></tr>
+      <tr><th>Album dana</th>
+        <td>{{with .Album}}<strong>{{.Title}}</strong> <span class="muted">· {{.Artist}}</span>{{else}}<span class="tag tag--warn">nema</span>{{end}}</td>
+        <td class="num"><a class="btn btn--small" href="/admin/albumi">Albumi</a></td></tr>
+    </tbody>
+  </table></div>
+  {{end}}
+</section>
+
+<section class="box">
+  <div class="box__head">
     <h2>Sljedeće izdanje</h2>
     <p class="muted small">Ovo bi se otisnulo sada. Skrivena stavka ne ide ni u jedno izdanje, a njezino mjesto dobiva sljedeća.</p>
   </div>

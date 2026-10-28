@@ -1,4 +1,4 @@
-// Command tisak fetches at 04:30, prints at 05:00 and serves the site. One binary, one database.
+// Command tisak fetches at 05:15, prints at 05:45 and serves the site. One binary, one database.
 //
 //	tisak -migrate              create or update the tables (and fill in the first categories)
 //	tisak -fetch-now            run every fetcher once
@@ -52,8 +52,8 @@ func main() {
 		dbURL    = flag.String("db", env("DATABASE_URL", "postgres://tisak:tisak@localhost:5432/tisak"), "Postgres connection URL")
 		data     = flag.String("data", env("TISAK_DATA", "data"), "folder for pictures and editions")
 		siteURL  = flag.String("site", env("TISAK_SITE", "/"), "the site's root, used in links from editions back to the archive")
-		fetchAt  = flag.String("fetch-at", "04:30", "daily fetch time, Zagreb time")
-		printAt  = flag.String("print-at", "05:00", "daily print time, Zagreb time")
+		fetchAt  = flag.String("fetch-at", "05:15", "daily fetch time, Zagreb time")
+		printAt  = flag.String("print-at", "05:45", "daily print time, Zagreb time")
 		proxy    = flag.Bool("trust-proxy", env("TISAK_TRUST_PROXY", "") != "", "behind a proxy: read the client's address and https from X-Forwarded-*")
 	)
 	flag.Parse()
@@ -79,7 +79,7 @@ func main() {
 	client := fetch.NewClient()
 	pics := &media.Store{Dir: filepath.Join(*data, "media"), DB: db, Client: client}
 	pr := &press.Press{Store: db, Media: pics, Web: web.FS(webDir), Out: filepath.Join(*data, "editions"), Site: *siteURL, Loc: loc}
-	runner := &fetch.Runner{Store: db, Client: client, Pictures: pics, PictureWidth: 1000}
+	runner := &fetch.Runner{Store: db, Client: client, Pictures: pics, PictureWidth: 1000, Loc: loc}
 	app := &App{DB: db, Press: pr, Runner: runner, Jobs: &jobs.Jobs{Runner: runner, Press: pr}, Media: pics, Log: logger}
 	app.Admin = &admin.Admin{Store: db, Auth: &auth.Manager{Store: db, TrustProxy: *proxy}, Jobs: app.Jobs, Press: pr,
 		Media: pics, Client: client, Web: pr.Web, Loc: loc, Log: logger, FetchAt: *fetchAt, PrintAt: *printAt}
@@ -204,6 +204,10 @@ func (a *App) Check(ctx context.Context) error {
 	fmt.Fprintln(tw, "SOURCE\tKIND\tITEMS\tNEWEST\tRESULT")
 	for _, s := range sources {
 		f, ok := fetch.Lookup(s.Kind)
+		if fetch.Keeps(s.Kind) {
+			fmt.Fprintf(tw, "%s\t%s\t-\t-\tside column: saves as it fetches, so not tried here\n", s.Name, s.Kind)
+			continue
+		}
 		if !ok {
 			fmt.Fprintf(tw, "%s\t%s\t-\t-\tunknown kind\n", s.Name, s.Kind)
 			continue

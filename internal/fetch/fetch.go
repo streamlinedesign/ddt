@@ -25,10 +25,13 @@ var kinds = map[string]Fetcher{}
 // Register makes a fetcher kind available to sources. Call it from an init function.
 func Register(kind string, f Fetcher) { kinds[kind] = f }
 
-// Kinds lists the registered kinds, for the dashboard's source form.
+// Kinds lists the registered kinds, side column ones too, for the dashboard's source form.
 func Kinds() []string {
-	out := make([]string, 0, len(kinds))
+	out := make([]string, 0, len(kinds)+len(keepers))
 	for k := range kinds {
+		out = append(out, k)
+	}
+	for k := range keepers {
 		out = append(out, k)
 	}
 	sort.Strings(out)
@@ -99,6 +102,7 @@ type Runner struct {
 	Workers  int
 	// Picture widths: lead cards print large, everything else small.
 	PictureWidth int
+	Loc          *time.Location // the paper's time zone, for the side column's day
 }
 
 // Run fetches every enabled source, saves the items, then saves the pictures the press may print.
@@ -150,6 +154,9 @@ func (r *Runner) Run(ctx context.Context, only func(store.Source) bool) ([]Resul
 
 func (r *Runner) one(ctx context.Context, src store.Source, wantPictures bool) Result {
 	res := Result{Source: src}
+	if k, ok := keepers[src.Kind]; ok {
+		return r.keep(ctx, src, k)
+	}
 
 	f, ok := Lookup(src.Kind)
 	if !ok {
@@ -192,5 +199,22 @@ func (r *Runner) one(ctx context.Context, src store.Source, wantPictures bool) R
 		}
 	}
 	_ = r.Store.FetchResult(ctx, src.ID, res.Items, nil)
+	return res
+}
+
+func (r *Runner) keep(ctx context.Context, src store.Source, k Keeper) Result {
+	res := Result{Source: src}
+	loc := r.Loc
+	if loc == nil {
+		loc = time.Local
+	}
+	sctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+	kit := Kit{Store: r.Store, Client: r.Client, Pictures: r.Pictures, Now: time.Now().In(loc)}
+	res.Items, res.Err = k.Keep(sctx, kit, src.Settings)
+	if res.Err == nil && res.Items == 0 {
+		res.Err = errors.New("nothing to keep")
+	}
+	_ = r.Store.FetchResult(ctx, src.ID, res.Items, res.Err)
 	return res
 }

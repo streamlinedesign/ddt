@@ -1,0 +1,91 @@
+{{define "page"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <h1>Riječ dana</h1>
+    <p>Jedna riječ za svaki dan, u stupcu uz glavni članak. Dan bez riječi izlazi bez nje.</p>
+  </div>
+</div>
+
+{{template "gaps" .}}
+
+<div class="two">
+  <section class="box">
+    <h2>Nova riječ</h2>
+    <form method="post" action="/admin/rijeci" class="form">
+      {{template "csrf" .CSRF}}
+      {{template "fields" .Form}}
+      <div><button class="btn btn--main">{{template "icon" "plus"}}Dodaj riječ</button></div>
+    </form>
+  </section>
+
+  <section class="box">
+    <h2>Raspored</h2>
+    {{if .Words}}
+    <div class="tbl"><table>
+      <thead><tr><th>Dan</th><th>Riječ</th><th></th></tr></thead>
+      <tbody>
+      {{range .Words}}
+        <tr{{if lt (date .Day) (date $.Today)}} class="off"{{end}}>
+          <td class="nowrap">{{sday .Day}}{{if eq (date .Day) (date $.Today)}} <span class="tag tag--ok">danas</span>{{end}}</td>
+          <td><a href="/admin/rijeci/{{.ID}}"><strong>{{.Word}}</strong></a><div class="muted small">{{short (plain .Description) 90}}</div></td>
+          <td class="num"><a class="btn btn--small" href="/admin/rijeci/{{.ID}}">Uredi</a></td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table></div>
+    {{else}}<p class="muted">Još nema nijedne riječi.</p>{{end}}
+  </section>
+</div>
+{{template "close" .}}{{end}}
+
+{{define "gaps"}}
+{{if .Gaps}}
+<p class="gaps">{{template "icon" "calendar"}}<span>Bez unosa u sljedeća dva tjedna:</span>
+  {{range .Gaps}}<a class="tag" href="?dan={{date .}}">{{sday .}}</a> {{end}}
+</p>
+{{end}}
+{{end}}
+
+{{define "fields"}}
+      <label>Dan
+        <input type="date" name="day" value="{{date .Day}}" required>
+        {{template "err" (index .Errors "day")}}
+      </label>
+      <label>Riječ
+        <input type="text" name="word" value="{{.Word.Word}}" maxlength="60" required>
+        {{template "err" (index .Errors "word")}}
+      </label>
+      <label>Poveznica <small>Neobavezno: odakle je objašnjenje, npr. enciklopedija.hr.</small>
+        <input type="url" name="link" value="{{.Link}}" placeholder="https://">
+        {{template "err" (index .Errors "link")}}
+      </label>
+      <label>Objašnjenje <small>*kurziv*, **podebljano**, [riječi](https://poveznica)</small>
+        <textarea name="description" rows="5" maxlength="800">{{.Description}}</textarea>
+        {{template "err" (index .Errors "description")}}
+      </label>
+{{end}}
+
+{{define "edit"}}{{template "open" .}}
+<div class="head">
+  <div>
+    <a class="back" href="/admin/rijeci">{{template "icon" "arrow-left"}}Riječ dana</a>
+    <h1>{{.Form.Word.Word}}</h1>
+  </div>
+</div>
+<div class="two">
+  <section class="box">
+    <form method="post" action="/admin/rijeci/{{.Form.ID}}" class="form">
+      {{template "csrf" .CSRF}}
+      {{template "fields" .Form}}
+      <div><button class="btn btn--main">Spremi</button></div>
+    </form>
+  </section>
+  <section class="box danger">
+    <h2>Brisanje</h2>
+    <form method="post" action="/admin/rijeci/{{.Form.ID}}/obrisi" hx-confirm="Obrisati riječ {{.Form.Word.Word}}?">
+      {{template "csrf" .CSRF}}
+      <button class="btn btn--bad">{{template "icon" "trash"}}Obriši riječ</button>
+    </form>
+  </section>
+</div>
+{{template "close" .}}{{end}}

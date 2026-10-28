@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"tisak/internal/auth"
+	"tisak/internal/fetch"
 	"tisak/internal/jobs"
 	"tisak/internal/press"
 	"tisak/internal/store"
@@ -22,6 +23,12 @@ type previewData struct {
 	Sections []press.Section
 	Hidden   []store.HiddenItem
 	CSRF     string
+	// the top of the edition: the main article and the side column
+	Lead    *press.Lead
+	Weather []store.Forecast
+	Word    *press.WordPanel
+	Sky     *press.SkyPanel
+	Album   *press.AlbumPanel
 }
 
 // today is the Danas page: what was printed, what the next print would carry, and how the sources are.
@@ -106,7 +113,11 @@ func (a *Admin) sourceRows(r *http.Request) ([]sourceRow, error) {
 	}
 	for _, s := range srcs {
 		if names[s.CategoryID] == "" {
-			out = append(out, sourceRow{s, "Bez kategorije"})
+			where := "Bez kategorije"
+			if fetch.Keeps(s.Kind) {
+				where = "Bočni stupac"
+			}
+			out = append(out, sourceRow{s, where})
 		}
 	}
 	return out, nil
@@ -124,7 +135,8 @@ func (a *Admin) previewData(r *http.Request) (previewData, error) {
 		return previewData{}, err
 	}
 	who, _ := auth.From(r.Context())
-	return previewData{Sections: snap.Sections, Hidden: hidden, CSRF: who.Session.CSRF}, nil
+	return previewData{Sections: snap.Sections, Hidden: hidden, CSRF: who.Session.CSRF,
+		Lead: snap.Lead, Weather: snap.Weather, Word: snap.Word, Sky: snap.Sky, Album: snap.Album}, nil
 }
 
 func (a *Admin) preview(w http.ResponseWriter, r *http.Request) {
